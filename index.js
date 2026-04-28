@@ -1160,7 +1160,11 @@
 
   // 加载外部文档内容
   function fetchDocContent(docUrl, callback) {
-    var fullUrl = (docUrl.startsWith('http') ? '' : BASE + '/') + docUrl;
+    // 对 URL 路径进行编码（处理中文和特殊字符文件名）
+    var encodedUrl = docUrl.split('/').map(function(part) {
+      return encodeURIComponent(part);
+    }).join('/');
+    var fullUrl = (docUrl.startsWith('http') ? '' : BASE + '/') + encodedUrl;
     fetch(fullUrl)
       .then(function(r) { return r.text(); })
       .then(function(text) { callback(text); })
