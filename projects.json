@@ -1,43 +1,43 @@
 [
   {
-    "id": "project_1",
+    "id": "proj_1",
     "title": "散线转文字",
-    "description": "基于PaddleOCR的智能识别引擎，将CAD中的散线文字快速转换为可编辑文本。支持钢筋符号、结构图的精准识别。",
+    "description": "一键将CAD中的散线文字转换为可编辑的文字，省时省力。",
+    "emoji": "📐",
     "tags": [
       "PaddleOCR",
       "深度学习",
-      "批量处理"
+      "CAD"
     ],
-    "emoji": "📐",
     "gradient": "linear-gradient(135deg, #6366f1, #8b5cf6)",
     "link": "#",
     "order": 1
   },
   {
-    "id": "project_2",
-    "title": "不加班的小刘_工具箱",
-    "description": "集成多种实用功能的CAD工具箱，包含批量打印、图层管理、图块炸开、文字替换等常用功能。",
+    "id": "proj_2",
+    "title": "批量打印插件",
+    "description": "支持批量打印DWG文件，自定义布局和纸张大小。",
+    "emoji": "🖨️",
     "tags": [
-      "批量处理",
-      "图层管理",
-      "效率提升"
+      "AutoCAD",
+      "打印",
+      "批处理"
     ],
-    "emoji": "🧰",
-    "gradient": "linear-gradient(135deg, #f59e0b, #ef4444)",
+    "gradient": "linear-gradient(135deg, #10b981, #14b8a6)",
     "link": "#",
     "order": 2
   },
   {
-    "id": "project_3",
-    "title": "CAD插件网络授权系统",
-    "description": "完整的CAD插件授权解决方案，支持在线激活、离线模式、机器码绑定，让软件分发更安全可控。",
+    "id": "proj_3",
+    "title": "图块库管理",
+    "description": "快速查找、插入和管理CAD图块，提高绘图效率。",
+    "emoji": "📦",
     "tags": [
-      "Supabase",
-      "在线授权",
-      "C#"
+      "图块",
+      "管理",
+      "效率"
     ],
-    "emoji": "🔐",
-    "gradient": "linear-gradient(135deg, #10b981, #3b82f6)",
+    "gradient": "linear-gradient(135deg, #f59e0b, #d97706)",
     "link": "#",
     "order": 3
   }
