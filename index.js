@@ -1,8 +1,8 @@
-// index.js - Dynamic blog content loader from local API
+// index.js - Dynamic blog content loader
 (function() {
     'use strict';
 
-    var API_BASE = '/api';
+    var API_BASE = '/data';
 
     // Scroll progress & back to top
     window.addEventListener('scroll', function() {
