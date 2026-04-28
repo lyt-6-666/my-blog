@@ -1,1 +1,50 @@
-[]
+[
+  {
+    "id": "article_1",
+    "title": "AutoCAD二次开发入门：从零开始写插件",
+    "category": "入门教程",
+    "summary": "详细讲解AutoCAD二次开发环境的搭建、C#项目创建、插件加载方式等基础知识。",
+    "content": "## 前言\n\nAutoCAD 二次开发是一个非常有价值的技能，可以大大提高工程设计的效率。\n\n## 环境搭建\n\n1. 安装 Visual Studio（推荐 2019 以上）\n2. 安装 AutoCAD .NET API\n3. 创建 Class Library 项目\n\n## 第一个插件\n\n```csharp\nusing Autodesk.AutoCAD.Runtime;\nusing Autodesk.AutoCAD.ApplicationServices;\n\npublic class HelloWorld\n{\n    [CommandMethod(\"HelloWorld\")]\n    public void Hello()\n    {\n        Application.ShowAlertDialog(\"Hello, AutoCAD!\");\n    }\n}\n```\n\n## 总结\n\n通过本文，你已经掌握了 AutoCAD 二次开发的基本流程。",
+    "tags": [
+      "AutoCAD",
+      "C#",
+      "入门"
+    ],
+    "cover_image": "",
+    "published": true,
+    "created_at": "2026-04-20T10:00:00Z",
+    "updated_at": "2026-04-20T10:00:00Z"
+  },
+  {
+    "id": "article_2",
+    "title": "散线转文字使用指南：提升识别准确率",
+    "category": "实战技巧",
+    "summary": "分享几个提升OCR识别效果的小技巧，让识别结果更加准确可靠。",
+    "content": "## 前言\n\n散线转文字是我们工具箱中最受欢迎的功能之一，但很多用户反馈识别准确率不够高。\n\n## 技巧一：调整图片分辨率\n\n建议将 CAD 导出为 300 DPI 的 PNG 图片，效果最佳。\n\n## 技巧二：预处理图片\n\n- 增强对比度\n- 去噪声\n- 二值化处理\n\n## 技巧三：选择合适的区域\n\n一次只识别一个区域，避免太多文字堆叠在一起。",
+    "tags": [
+      "OCR",
+      "技巧",
+      "散线转文字"
+    ],
+    "cover_image": "",
+    "published": true,
+    "created_at": "2026-04-18T10:00:00Z",
+    "updated_at": "2026-04-18T10:00:00Z"
+  },
+  {
+    "id": "article_3",
+    "title": "C#调用Supabase实战：构建在线授权系统",
+    "category": "开发笔记",
+    "summary": "记录使用Supabase后端服务+C#客户端开发完整在线授权系统的全过程。",
+    "content": "## 项目背景\n\n我们需要为 CAD 插件开发一套在线授权系统，支持在线激活、离线模式、机器码绑定。\n\n## 技术选型\n\n- **后端**：Supabase（PostgreSQL + Edge Functions）\n- **客户端**：C# .NET Framework 4.8\n- **加密**：HMAC-SHA256\n\n## 核心流程\n\n1. 用户注册 → 生成验证码 → 创建账号\n2. 首次登录 → 绑定机器码\n3. 每次使用 → 验证授权状态\n\n## 离线模式\n\n离线模式下，授权信息保存在本地注册表中，定期同步。",
+    "tags": [
+      "Supabase",
+      "C#",
+      "授权系统"
+    ],
+    "cover_image": "",
+    "published": true,
+    "created_at": "2026-04-15T10:00:00Z",
+    "updated_at": "2026-04-15T10:00:00Z"
+  }
+]
