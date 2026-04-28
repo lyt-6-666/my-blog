@@ -230,10 +230,35 @@
       var tags = (p.tags || []).slice(0, 4).map(function (t) { return '<span class="proj-tag">' + esc(t) + '</span>'; }).join('');
       var gradient = p.gradient || 'var(--g1)';
       var href = p.link && p.link !== '#' ? ' href="' + p.link + '" target="_blank"' : '';
-      // 视频链接按钮
+      // 视频链接按钮：从 video_url 提取 BV/av 号，生成弹窗播放
       var videoBtn = '';
       if (p.video_url) {
-        videoBtn = '<a href="' + esc(p.video_url) + '" target="_blank" class="proj-video-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906L17.813 4.653zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773H5.333zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z"/></svg> 观看视频</a>';
+        var bvMatch = (p.video_url + '').match(/BV[a-zA-Z0-9]+/);
+        var avMatch = (p.video_url + '').match(/av(\d+)/i);
+        var vidId = '';
+        var vidUrl = '';
+        if (bvMatch) {
+          vidId = bvMatch[0];
+          vidUrl = 'https://www.bilibili.com/video/' + vidId;
+        } else if (avMatch) {
+          vidId = 'av' + avMatch[1];
+          vidUrl = 'https://www.bilibili.com/video/av' + avMatch[1];
+        } else if (p.video_url.match(/^https?:\/\//)) {
+          vidUrl = p.video_url;
+        }
+        if (vidUrl) {
+          var src = '';
+          if (bvMatch) {
+            src = '//player.bilibili.com/player.html?bvid=' + bvMatch[0] + '&high_quality=1&autoplay=0';
+          } else if (avMatch) {
+            src = '//player.bilibili.com/player.html?aid=' + avMatch[1] + '&high_quality=1&autoplay=0';
+          }
+          if (src) {
+            videoBtn = '<a onclick="openVideoPlayer(\'' + src + '\',\'' + esc(p.title) + '\')" class="proj-video-link" style="cursor:pointer"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> 观看视频</a>';
+          } else {
+            videoBtn = '<a href="' + esc(vidUrl) + '" target="_blank" class="proj-video-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> 观看视频</a>';
+          }
+        }
       }
       // 图标：优先使用图片，否则 emoji
       var iconHtml = '';
@@ -259,6 +284,40 @@
     }).join('');
     observeAll(el);
   }
+
+  // ===========================
+  // B站视频播放弹窗
+  // ===========================
+  window.openVideoPlayer = function (src, title) {
+    // 移除已有的视频弹窗（如有）
+    var old = document.getElementById('video-modal');
+    if (old) old.remove();
+    var modal = document.createElement('div');
+    modal.id = 'video-modal';
+    modal.className = 'video-modal';
+    modal.innerHTML =
+      '<div class="video-modal-backdrop"></div>' +
+      '<div class="video-modal-box">' +
+        '<div class="video-modal-header"><span>' + (title || '观看视频') + '</span><button class="video-modal-close" onclick="closeVideoPlayer()">&times;</button></div>' +
+        '<div class="video-modal-body"><iframe src="' + src + '" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe></div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    // 下一帧添加 show 类触发动画
+    requestAnimationFrame(function () { modal.classList.add('show'); });
+    // 点击遮罩关闭
+    modal.querySelector('.video-modal-backdrop').addEventListener('click', window.closeVideoPlayer);
+    // ESC 关闭
+    document.addEventListener('keydown', videoEscHandler);
+  };
+  window.closeVideoPlayer = function () {
+    var modal = document.getElementById('video-modal');
+    if (modal) {
+      modal.classList.remove('show');
+      setTimeout(function () { modal.remove(); }, 300);
+    }
+    document.removeEventListener('keydown', videoEscHandler);
+  };
+  function videoEscHandler(e) { if (e.key === 'Escape') window.closeVideoPlayer(); }
 
   // ===========================
   // 相册 (gallery.json → array)
