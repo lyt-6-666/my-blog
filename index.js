@@ -461,7 +461,8 @@
     script.src = (BASE ? BASE + '/' : '') + 'pdf.min.js';
     script.onload = function () {
       console.log('[PDF] pdf.min.js 加载成功');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+      // 指向本地同源 worker 文件
+      pdfjsLib.GlobalWorkerOptions.workerSrc = (BASE ? BASE + '/' : '') + 'pdf.worker.min.js';
       renderPDF(pdfUrl);
     };
     script.onerror = function () {
