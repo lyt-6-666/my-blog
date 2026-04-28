@@ -1,0 +1,19 @@
+{
+  "cards": [
+    {
+      "icon": "📧",
+      "title": "邮箱",
+      "value": "1367273254@qq,com"
+    },
+    {
+      "icon": "💬",
+      "title": "qq",
+      "value": "wechat_id"
+    },
+    {
+      "icon": "🐙",
+      "title": "GitHub",
+      "value": "github.com/yourname"
+    }
+  ]
+}
