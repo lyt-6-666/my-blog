@@ -453,7 +453,7 @@
         <button class="pdf-close-btn" onclick="closePDFModal()" title="关闭">×</button>
       </div>
       <div class="pdf-modal-body" id="pdf-body">
-        <div class="pdf-loading">正在加载 PDF...</div>
+        <div id="pdf-loading" class="pdf-loading">正在加载 PDF...</div>
         <canvas id="pdf-canvas" style="display:none"></canvas>
       </div>
     </div>
@@ -471,8 +471,9 @@
       })();
       script.onload = function () {
         if (typeof pdfjsLib !== 'undefined') {
-          // 禁用 Worker，完全在主线程渲染，避免跨域 worker 问题
-          pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+          // 指向本地同源 worker 文件，避免 CDN 跨域 worker 问题
+          var base = location.pathname.replace(/\/[^/]*$/, '');
+          pdfjsLib.GlobalWorkerOptions.workerSrc = (base || '') + '/pdf.worker.min.js';
           // 通知 index.js：PDF.js 已就绪
           window._pdfJsPreloaded = true;
         }
