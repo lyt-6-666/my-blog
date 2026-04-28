@@ -7,8 +7,10 @@
       "C#，CAD二次开发，工具箱"
     ],
     "emoji": "📦",
-    "gradient": "linear-gradient(135deg, #6366f1, #8b5cf6)",
+    "icon_url": "",
+    "gradient": "linear-gradient(135deg, #06b6d4, #3b82f6)",
     "link": "#",
+    "video_url": "<iframe src=\"//player.bilibili.com/player.html?isOutside=true&aid=116346285457519&bvid=BV1kJDTBEEGs&cid=37237100508&p=1\" scrolling=\"no\" border=\"0\" frameborder=\"no\" framespacing=\"0\" allowfullscreen=\"true\"></iframe>",
     "order": 1
   },
   {
@@ -23,6 +25,7 @@
     "emoji": "📐",
     "gradient": "linear-gradient(135deg, #06b6d4, #3b82f6)",
     "link": "#",
+    "video_url": "https://www.bilibili.com/video/BV1example",
     "order": 2
   }
 ]
