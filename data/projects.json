@@ -17,7 +17,7 @@
   },
   {
     "id": "proj_1",
-    "title": "散线转文字",
+    "title": "散线转文字（新版）支持AutoCAD/浩辰/中望CAD ",
     "description": "一键将CAD中的散线文字转换为可编辑的文字，省时省力。",
     "tags": [
       "PaddleOCR",
