@@ -10,11 +10,11 @@
     ],
     "emoji": "",
     "icon_url": "images/proj_1777378745186_3bsy.png",
-    "gradient": "linear-gradient(135deg, #06b6d4, #3b82f6)",
+    "gradient": "linear-gradient(135deg, #f59e0b, #ef4444)",
     "link": "#",
     "video_url": "<iframe src=\"//player.bilibili.com/player.html?isOutside=true&aid=116346285457519&bvid=BV1kJDTBEEGs&cid=37237100508&p=1\" scrolling=\"no\" border=\"0\" frameborder=\"no\" framespacing=\"0\" allowfullscreen=\"true\"></iframe>",
-    "doc_url": "",
-    "pdf_url": "docs/pdf_1777367007101_ed02.pdf",
+    "doc_url": "docs/.md",
+    "pdf_url": "",
     "order": 1
   },
   {
