@@ -426,24 +426,28 @@
     // ESC 关闭
     document.addEventListener('keydown', pdfEscHandler);
 
-    // 加载 PDF.js 并渲染
-    loadPDFJS('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js', fullPdfUrl);
+    // 加载 PDF.js 并渲染（从本地同源加载，避免跨域 worker 问题）
+    loadPDFJS(fullPdfUrl);
   };
 
   // 动态加载 PDF.js
   function loadPDFJS(pdfjsSrc, pdfUrl) {
-
+    // 如果已加载，直接渲染
+    if (typeof pdfjsLib !== 'undefined') {
+      renderPDF(pdfUrl);
+      return;
+    }
     var script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
+    script.src = 'pdf.min.js';
     script.onload = function () {
-      // 设置 worker
+      // worker 与页面同源，避免跨域问题
       if (typeof pdfjsLib !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
       }
       renderPDF(pdfUrl);
     };
     script.onerror = function () {
-      showPDFError('PDF.js 加载失败，请检查网络连接');
+      showPDFError('PDF.js 加载失败，请确保 pdf.min.js 在网站根目录');
     };
     document.head.appendChild(script);
   }
@@ -457,12 +461,16 @@
   // 渲染 PDF
   function renderPDF(pdfUrl) {
     var loadingEl = document.getElementById('pdf-loading');
-    var errorEl = document.getElementById('pdf-error');
     var canvas = document.getElementById('pdf-canvas');
 
     if (typeof pdfjsLib === 'undefined') {
       showPDFError('PDF.js 未加载，请刷新页面重试');
       return;
+    }
+
+    // 确保 worker 使用本地同源文件（避免跨域 worker 问题）
+    if (pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
     }
 
     pdfjsLib.getDocument(pdfUrl).promise.then(function (pdf) {
@@ -484,9 +492,12 @@
   function showPDFError(msg) {
     var loadingEl = document.getElementById('pdf-loading');
     if (loadingEl) {
-      loadingEl.textContent = msg;
+      loadingEl.textContent = '❌ ' + msg;
       loadingEl.style.display = 'block';
       loadingEl.style.color = 'var(--err)';
+      loadingEl.style.fontSize = '1rem';
+      // 移除旋转动画，避免和错误状态混淆
+      loadingEl.style.cssText = 'color:var(--err);font-size:1rem;text-align:center;padding:3rem;background:none';
     }
   }
 
