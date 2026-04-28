@@ -388,65 +388,50 @@
   // PDF 使用说明弹窗（使用 PDF.js 在线预览）
   // ===========================
   window.openProjectPDF = function (pdfUrl, title) {
-    // 移除已有弹窗
-    var old = document.getElementById('pdf-modal');
-    if (old) old.remove();
+    var modal = document.getElementById('pdf-modal');
+    if (!modal) return;
 
-    // 获取 PDF.js CDN 地址（适配 GitHub Pages 子目录）
-    var pdfjsLib = BASE + '/https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
-    var pdfjsWorker = BASE + '/https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    // 重置状态：隐藏 canvas/controls，显示 loading
+    var loadingEl = document.getElementById('pdf-loading');
+    var canvas = document.getElementById('pdf-canvas');
+    var pageInfo = document.getElementById('pdf-page-info');
+    var prevBtn = document.getElementById('pdf-prev');
+    var nextBtn = document.getElementById('pdf-next');
+    var downloadBtn = document.getElementById('pdf-download');
+    var titleEl = document.getElementById('pdf-title');
 
-    // 创建弹窗
-    var modal = document.createElement('div');
-    modal.id = 'pdf-modal';
-    modal.className = 'pdf-modal';
-    modal.innerHTML =
-      '<div class="pdf-modal-backdrop"></div>' +
-      '<div class="pdf-modal-box">' +
-        '<div class="pdf-modal-header">' +
-          '<span>' + esc(title) + ' - PDF 使用说明</span>' +
-          '<div style="display:flex;gap:8px;align-items:center">' +
-            '<a id="pdf-download-btn" class="pdf-download-btn" download><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> 下载PDF</a>' +
-            '<button class="pdf-modal-close" onclick="closePDFModal()">&times;</button>' +
-          '</div>' +
-        '</div>' +
-        '<div class="pdf-modal-body">' +
-          '<div id="pdf-loading" style="text-align:center;padding:3rem;color:var(--text2)">加载中，请稍候...</div>' +
-          '<div id="pdf-error" style="text-align:center;padding:3rem;color:var(--err);display:none">PDF 加载失败</div>' +
-          '<canvas id="pdf-canvas" style="display:none"></canvas>' +
-          '<div id="pdf-controls" style="display:none;text-align:center;padding:12px;background:var(--bg2);border-top:1px solid var(--border)">' +
-            '<button id="pdf-prev" class="pdf-nav-btn" onclick="pdfChangePage(-1)">◀ 上一页</button>' +
-            '<span id="pdf-page-info" style="margin:0 16px;font-size:.9rem">第 1 / 1 页</span>' +
-            '<button id="pdf-next" class="pdf-nav-btn" onclick="pdfChangePage(1)">下一页 ▶</button>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(modal);
-    requestAnimationFrame(function () { modal.classList.add('show'); });
+    if (titleEl) titleEl.textContent = title;
+    if (canvas) canvas.style.display = 'none';
+    if (loadingEl) { loadingEl.textContent = '正在加载 PDF...'; loadingEl.style.display = 'block'; }
+    if (pageInfo) pageInfo.textContent = '0 / 0';
+    if (prevBtn) prevBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
 
-    // 下载按钮
-    var downloadBtn = document.getElementById('pdf-download-btn');
-    var fullPdfUrl = (pdfUrl.startsWith('http') ? '' : (BASE ? BASE + '/' : '')) + pdfUrl;
-    downloadBtn.href = fullPdfUrl;
-    downloadBtn.target = '_blank';
+    // 构造完整 URL
+    var fullPdfUrl = pdfUrl.startsWith('http') ? pdfUrl : (BASE ? BASE + '/' + pdfUrl : pdfUrl);
+    if (downloadBtn) { downloadBtn.href = fullPdfUrl; downloadBtn.target = '_blank'; }
+
+    // 重置 PDF 全局状态
+    _pdfDoc = null;
+    _pdfPage = 1;
+    _pdfTotal = 1;
+
+    // 显示弹窗
+    modal.classList.add('show');
 
     // 点击背景关闭
-    modal.querySelector('.pdf-modal-backdrop').addEventListener('click', window.closePDFModal);
+    var backdrop = modal.querySelector('.pdf-modal-backdrop');
+    if (backdrop) backdrop.addEventListener('click', window.closePDFModal);
 
     // ESC 关闭
     document.addEventListener('keydown', pdfEscHandler);
 
     // 加载 PDF.js 并渲染
-    loadPDFJS(pdfjsLib, fullPdfUrl);
+    loadPDFJS('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js', fullPdfUrl);
   };
 
   // 动态加载 PDF.js
   function loadPDFJS(pdfjsSrc, pdfUrl) {
-    // 检查是否已加载
-    if (typeof pdfjsLib !== 'undefined') {
-      renderPDF(pdfUrl);
-      return;
-    }
 
     var script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js';
@@ -474,7 +459,6 @@
     var loadingEl = document.getElementById('pdf-loading');
     var errorEl = document.getElementById('pdf-error');
     var canvas = document.getElementById('pdf-canvas');
-    var controls = document.getElementById('pdf-controls');
 
     if (typeof pdfjsLib === 'undefined') {
       showPDFError('PDF.js 未加载，请刷新页面重试');
@@ -488,7 +472,6 @@
 
       loadingEl.style.display = 'none';
       canvas.style.display = 'block';
-      controls.style.display = 'flex';
 
       renderPDFPage(_pdfPage);
     }).catch(function (err) {
@@ -500,11 +483,10 @@
   // 显示错误
   function showPDFError(msg) {
     var loadingEl = document.getElementById('pdf-loading');
-    var errorEl = document.getElementById('pdf-error');
-    if (loadingEl) loadingEl.style.display = 'none';
-    if (errorEl) {
-      errorEl.textContent = msg;
-      errorEl.style.display = 'block';
+    if (loadingEl) {
+      loadingEl.textContent = msg;
+      loadingEl.style.display = 'block';
+      loadingEl.style.color = 'var(--err)';
     }
   }
 
@@ -532,7 +514,7 @@
       page.render(renderContext);
 
       // 更新页码显示
-      if (pageInfo) pageInfo.textContent = '第 ' + pageNum + ' / ' + _pdfTotal + ' 页';
+    if (pageInfo) pageInfo.textContent = '第 ' + pageNum + ' / ' + _pdfTotal + ' 页';
       if (prevBtn) prevBtn.disabled = pageNum <= 1;
       if (nextBtn) nextBtn.disabled = pageNum >= _pdfTotal;
     });
@@ -550,10 +532,7 @@
   // 关闭 PDF 弹窗
   window.closePDFModal = function () {
     var modal = document.getElementById('pdf-modal');
-    if (modal) {
-      modal.classList.remove('show');
-      setTimeout(function () { modal.remove(); }, 300);
-    }
+    if (modal) modal.classList.remove('show');
     document.removeEventListener('keydown', pdfEscHandler);
   };
   function pdfEscHandler(e) { if (e.key === 'Escape') window.closePDFModal(); }
