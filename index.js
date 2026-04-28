@@ -260,6 +260,11 @@
           }
         }
       }
+      // 使用说明按钮
+      var docBtn = '';
+      if (p.doc_url) {
+        docBtn = '<a onclick="openProjectDoc(\'' + esc(p.doc_url) + '\',\'' + esc(p.title) + '\')" class="proj-doc-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6zm2-7h8v1.5H8V13zm0 3h5v1.5H8V16z"/></svg> 使用说明</a>';
+      }
       // 图标：优先使用图片，否则 emoji
       var iconHtml = '';
       if (p.icon_url) {
@@ -278,6 +283,7 @@
           '<div class="proj-actions">' +
             (href ? '<a' + href + ' class="proj-link">查看详情 →</a>' : '') +
             videoBtn +
+            docBtn +
           '</div>' +
         '</div>' +
       '</div>';
@@ -318,6 +324,59 @@
     document.removeEventListener('keydown', videoEscHandler);
   };
   function videoEscHandler(e) { if (e.key === 'Escape') window.closeVideoPlayer(); }
+
+  // ===========================
+  // 使用说明弹窗（加载 MD/TXT 文件并渲染）
+  // ===========================
+  window.openProjectDoc = function (docUrl, title) {
+    // 移除已有弹窗
+    var old = document.getElementById('doc-modal');
+    if (old) old.remove();
+    // 创建弹窗
+    var modal = document.createElement('div');
+    modal.id = 'doc-modal';
+    modal.className = 'modal';
+    modal.innerHTML =
+      '<div class="modal-box" style="max-width:860px">' +
+        '<button class="modal-close" onclick="closeDocModal()">&times;</button>' +
+        '<div class="modal-body">' +
+          '<h2 style="margin-bottom:1rem;font-size:1.4rem">' + esc(title) + ' - 使用说明</h2>' +
+          '<div id="doc-modal-loading" style="text-align:center;padding:3rem;color:var(--text2)">加载中...</div>' +
+          '<div id="doc-modal-content" class="md-content" style="display:none"></div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    requestAnimationFrame(function () { modal.classList.add('show'); });
+    modal.addEventListener('click', function (e) { if (e.target === modal) closeDocModal(); });
+    document.addEventListener('keydown', docEscHandler);
+    // 加载文档内容
+    fetch(BASE + '/' + docUrl)
+      .then(function (r) { return r.ok ? r.text() : null; })
+      .then(function (text) {
+        var loading = document.getElementById('doc-modal-loading');
+        var content = document.getElementById('doc-modal-content');
+        if (!text) {
+          if (loading) loading.textContent = '文档加载失败';
+          return;
+        }
+        content.innerHTML = md2html(text);
+        loading.style.display = 'none';
+        content.style.display = 'block';
+      })
+      .catch(function () {
+        var loading = document.getElementById('doc-modal-loading');
+        if (loading) loading.textContent = '文档加载失败';
+      });
+  };
+  window.closeDocModal = function () {
+    var modal = document.getElementById('doc-modal');
+    if (modal) {
+      modal.classList.remove('show');
+      setTimeout(function () { modal.remove(); }, 300);
+    }
+    document.removeEventListener('keydown', docEscHandler);
+  };
+  function docEscHandler(e) { if (e.key === 'Escape') window.closeDocModal(); }
 
   // ===========================
   // 相册 (gallery.json → array)
