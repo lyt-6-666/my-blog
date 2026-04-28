@@ -276,6 +276,33 @@
     .section{padding:4rem 1.5rem}
     .gallery-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
   }
+
+  /* ===== PDF 弹窗 ===== */
+  .proj-pdf-link{display:inline-flex;align-items:center;gap:.35rem;color:#e11d48;font-size:.85rem;font-weight:500;padding:.35rem .8rem;border-radius:50px;background:rgba(225,29,72,.08);border:1px solid rgba(225,29,72,.2);cursor:pointer;transition:all .3s;text-decoration:none}
+  .proj-pdf-link:hover{background:rgba(225,29,72,.18);border-color:rgba(225,29,72,.4);color:#be123c}
+  .pdf-modal{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .3s}
+  .pdf-modal.show{display:flex;opacity:1}
+  .pdf-modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.7)}
+  .pdf-modal-box{position:relative;width:92%;max-width:900px;height:85vh;background:var(--card);border-radius:16px;overflow:hidden;box-shadow:0 25px 80px rgba(0,0,0,.5);transform:scale(.95);transition:transform .3s;display:flex;flex-direction:column}
+  .pdf-modal.show .pdf-modal-box{transform:scale(1)}
+  .pdf-modal-header{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.2rem;background:var(--bg2);color:var(--text);font-size:.92rem;font-weight:500;border-bottom:1px solid var(--border);flex-shrink:0}
+  .pdf-modal-header-left{display:flex;align-items:center;gap:.8rem;min-width:0}
+  .pdf-modal-header-left span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pdf-modal-actions{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+  .pdf-nav-btn{width:32px;height:32px;background:var(--soft);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-weight:bold;line-height:1}
+  .pdf-nav-btn:hover{background:var(--glow);border-color:var(--accent)}
+  .pdf-nav-btn:disabled{opacity:.35;cursor:default}
+  .pdf-page-info{font-size:.82rem;color:var(--text2);font-family:'Fira Code',monospace;min-width:60px;text-align:center}
+  .pdf-download-btn{font-size:.78rem;color:var(--accent);text-decoration:none;padding:.3rem .7rem;border-radius:6px;background:var(--soft);border:1px solid transparent;transition:all .2s;white-space:nowrap}
+  .pdf-download-btn:hover{border-color:var(--accent)}
+  .pdf-close-btn{width:32px;height:32px;background:rgba(239,68,68,.1);border:none;border-radius:8px;color:#ef4444;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;margin-left:.3rem;flex-shrink:0}
+  .pdf-close-btn:hover{background:rgba(239,68,68,.25)}
+  .pdf-modal-body{flex:1;overflow:auto;padding:1.5rem;display:flex;flex-direction:column;align-items:center;background:var(--bg);position:relative}
+  #pdf-canvas{box-shadow:0 2px 20px rgba(0,0,0,.15);border-radius:4px;max-width:100%;height:auto !important}
+  .pdf-loading{color:var(--muted);font-size:.92rem;padding:3rem}
+  .pdf-error{color:var(--err);font-size:.92rem;padding:3rem;text-align:center}
+  .pdf-loading::before{content:'';display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-right:.5rem;vertical-align:middle}
+  @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
@@ -406,6 +433,30 @@
     <button class="lb-close" id="lb-close">×</button>
     <img id="lb-img" src="" alt="">
     <div class="lb-caption" id="lb-caption"></div>
+  </div>
+
+  <!-- PDF 弹窗 -->
+  <div class="pdf-modal" id="pdf-modal">
+    <div class="pdf-modal-backdrop"></div>
+    <div class="pdf-modal-box">
+      <div class="pdf-modal-header">
+        <div class="pdf-modal-header-left">
+          <span>📄</span>
+          <span id="pdf-title"></span>
+        </div>
+        <div class="pdf-modal-actions">
+          <button class="pdf-nav-btn" id="pdf-prev" onclick="window.pdfChangePage(-1)" title="上一页">‹</button>
+          <span class="pdf-page-info" id="pdf-page-info">0 / 0</span>
+          <button class="pdf-nav-btn" id="pdf-next" onclick="window.pdfChangePage(1)" title="下一页">›</button>
+          <a class="pdf-download-btn" id="pdf-download" href="#" download>下载 PDF</a>
+        </div>
+        <button class="pdf-close-btn" onclick="closePDFModal()" title="关闭">×</button>
+      </div>
+      <div class="pdf-modal-body" id="pdf-body">
+        <div class="pdf-loading">正在加载 PDF...</div>
+        <canvas id="pdf-canvas" style="display:none"></canvas>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
