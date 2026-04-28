@@ -34,5 +34,25 @@
     "doc_url": "docs/demo_doc.md",
     "pdf_url": "",
     "order": 2
+  },
+  {
+    "id": "proj_1777385739813",
+    "title": "散线转文字（旧版）永久免费授权",
+    "description": "永久免费授权！永久免费授权！永久免费授权！",
+    "tags": [
+      "PaddleOCR",
+      "深度学习",
+      "CAD",
+      "二次开发",
+      "C#"
+    ],
+    "emoji": "📦",
+    "icon_url": "",
+    "gradient": "linear-gradient(135deg, #f59e0b, #ef4444)",
+    "link": "#",
+    "video_url": "",
+    "doc_url": "docs/.txt",
+    "pdf_url": "",
+    "order": 3
   }
 ]
