@@ -87,6 +87,12 @@
     if (path.startsWith('http')) return path;
     return IS_LOCAL ? (BASE ? BASE + '/' + path : path) : (CDN + '/' + path);
   }
+  // 获取文档完整 URL：本地用相对路径，线上用 CDN
+  function getDocUrl(path) {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    return IS_LOCAL ? (BASE ? BASE + '/' + path : path) : (CDN + '/' + path);
+  }
 
   // ===========================
   // 创建带骨架屏的图片元素
@@ -700,8 +706,8 @@
     requestAnimationFrame(function () { modal.classList.add('show'); });
     modal.addEventListener('click', function (e) { if (e.target === modal) closeDocModal(); });
     document.addEventListener('keydown', docEscHandler);
-    // 加载文档内容
-    fetch(BASE + '/' + docUrl)
+    // 加载文档内容（使用 CDN 加速）
+    fetch(getDocUrl(docUrl))
       .then(function (r) { return r.ok ? r.text() : null; })
       .then(function (text) {
         var loading = document.getElementById('doc-modal-loading');
@@ -1175,7 +1181,7 @@
     var encodedUrl = docUrl.split('/').map(function(part) {
       return encodeURIComponent(part);
     }).join('/');
-    var fullUrl = (docUrl.startsWith('http') ? '' : BASE + '/') + encodedUrl;
+    var fullUrl = getDocUrl(encodedUrl);
     fetch(fullUrl)
       .then(function(r) { return r.text(); })
       .then(function(text) { callback(text); })
