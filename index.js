@@ -678,7 +678,7 @@
       var date = new Date(a.updated_at || a.created_at || Date.now()).toLocaleDateString('zh-CN');
       var summary = a.summary || (a.content || '').replace(/[#>*`\[\]\n]/g, '').trim().slice(0, 80) + '…';
       var thumb = a.cover_image
-        ? '<img src="' + a.cover_image + '" alt="">'
+        ? '<img src="' + (a.cover_image.startsWith('http') ? a.cover_image : (BASE ? BASE + '/' + a.cover_image : a.cover_image)) + '" alt="">'
         : '<span style="position:relative;z-index:1;font-size:2.5rem;">📄</span>';
       return '<article class="art-card fade-in" data-id="' + a.id + '">' +
         '<div class="art-thumb">' + thumb + '</div>' +
