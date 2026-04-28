@@ -440,10 +440,7 @@
     var script = document.createElement('script');
     script.src = 'pdf.min.js';
     script.onload = function () {
-      // worker 与页面同源，避免跨域问题
-      if (typeof pdfjsLib !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
-      }
+      console.log('[PDF] pdf.min.js 加载成功');
       renderPDF(pdfUrl);
     };
     script.onerror = function () {
@@ -458,7 +455,7 @@
   var _pdfTotal = 1;
   var _pdfScale = 1.5;
 
-  // 渲染 PDF
+  // 渲染 PDF（使用 fetch + ArrayBuffer 绕过 worker，避免跨域问题）
   function renderPDF(pdfUrl) {
     var loadingEl = document.getElementById('pdf-loading');
     var canvas = document.getElementById('pdf-canvas');
@@ -468,24 +465,39 @@
       return;
     }
 
-    // 确保 worker 使用本地同源文件（避免跨域 worker 问题）
-    if (pdfjsLib.GlobalWorkerOptions && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+    // 显示加载中
+    if (loadingEl) {
+      loadingEl.textContent = '正在加载 PDF...';
+      loadingEl.style.cssText = 'color:var(--muted);font-size:.92rem;text-align:center;padding:3rem';
+      loadingEl.style.display = 'block';
     }
+    if (canvas) canvas.style.display = 'none';
 
-    pdfjsLib.getDocument(pdfUrl).promise.then(function (pdf) {
-      _pdfDoc = pdf;
-      _pdfTotal = pdf.numPages;
-      _pdfPage = 1;
+    // 用 fetch 加载 PDF 为 ArrayBuffer，绕过 worker 的跨域问题
+    fetch(pdfUrl)
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.arrayBuffer();
+      })
+      .then(function (buf) {
+        console.log('[PDF] fetch 成功，buffer 大小:', buf.byteLength);
+        return pdfjsLib.getDocument({ data: buf }).promise;
+      })
+      .then(function (pdf) {
+        console.log('[PDF] 解析成功，页数:', pdf.numPages);
+        _pdfDoc = pdf;
+        _pdfTotal = pdf.numPages;
+        _pdfPage = 1;
 
-      loadingEl.style.display = 'none';
-      canvas.style.display = 'block';
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (canvas) canvas.style.display = 'block';
 
-      renderPDFPage(_pdfPage);
-    }).catch(function (err) {
-      console.error('PDF 加载失败:', err);
-      showPDFError('PDF 加载失败: ' + (err.message || '未知错误'));
-    });
+        renderPDFPage(_pdfPage);
+      })
+      .catch(function (err) {
+        console.error('[PDF] 加载失败:', err);
+        showPDFError('PDF 加载失败: ' + (err.message || err.name || '未知错误'));
+      });
   }
 
   // 显示错误
