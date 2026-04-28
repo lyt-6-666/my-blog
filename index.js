@@ -447,10 +447,8 @@
       // 观察所有淡入元素
       document.querySelectorAll('.fade-in').forEach(function (el) { io.observe(el); });
 
-      // 首屏图片预加载（DOM 渲染完成后立即开始，不等待滚动）
-      requestIdleCallback(function () {
-        preloadFirstScreenImages(projects, gallery, articles, about);
-      });
+      // 首屏图片预加载（DOM 渲染完成后补充预加载）
+      preloadCriticalImages(projects, gallery, articles, about);
     }).catch(function (err) {
       console.error('[博客] 数据加载失败:', err);
     });
@@ -458,11 +456,12 @@
 
   // ===========================
   // 首屏图片预加载（秒加载核心）
+  // 在 DOM 渲染前就开始，提前抢占带宽
   // ===========================
-  function preloadFirstScreenImages(projects, gallery, articles, about) {
+  function preloadCriticalImages(projects, gallery, articles, about) {
     var urls = [];
-    // 作品封面（前3个）
-    projects.slice(0, 3).forEach(function (p) {
+    // 作品封面（全部，因为作品区通常在首屏）
+    projects.slice(0, 4).forEach(function (p) {
       if (p.icon_url) urls.push(getImgUrl(p.icon_url));
     });
     // 相册（前6个）
@@ -476,10 +475,27 @@
     // 头像
     if (about.avatar_url) urls.push(getImgUrl(about.avatar_url));
 
-    // 批量预加载（静默进行，不阻塞渲染）
+    // 直接开始预加载，不等待 requestIdleCallback
     ImagePreloader.preloadAll(urls);
-    console.log('[博客] 首屏图片预加载开始:', urls.length, '张');
+    console.log('[博客] 关键图片预加载:', urls.length, '张');
   }
+
+  // 在数据加载前预先启动（抢占先机）
+  (function preloadBeforeRender() {
+    // 先获取 URL 列表（不阻塞）
+    var files = ['projects', 'gallery', 'articles', 'about'];
+    Promise.all(files.map(function (f) {
+      return fetch(DATA + '/' + f + '.json')
+        .then(function (r) { return r.ok ? r.json() : Promise.resolve(null); })
+        .catch(function () { return null; });
+    })).then(function (res) {
+      var projects = res[0] || [];
+      var gallery = res[1] || [];
+      var articles = res[2] || [];
+      var about = res[3] || {};
+      preloadCriticalImages(projects, gallery, articles, about);
+    });
+  })();
 
   // ===========================
   // 站点配置  (config.json → site)
@@ -598,10 +614,11 @@
       if (p.pdf_url) {
         pdfBtn = '<a onclick="openProjectPDF(\'' + esc(p.pdf_url) + '\',\'' + esc(p.title) + '\')" class="proj-pdf-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg> ' + t('btn_pdf') + '</a>';
       }
-      // 图标：有图片时铺满顶部，否则 emoji 居中显示
+      // 图标：直接用 src 让浏览器立即加载（首屏可见）
       var iconHtml = '';
       if (p.icon_url) {
-        iconHtml = createLazyImage(p.icon_url, p.title, '', false);
+        var fullUrl = getImgUrl(p.icon_url);
+        iconHtml = '<img src="' + fullUrl + '" alt="' + esc(p.title) + '" class="img-loaded" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">';
       } else {
         iconHtml = '<span style="position:relative;z-index:1;font-size:4rem;">' + (p.emoji || '📦') + '</span>';
       }
@@ -1021,7 +1038,7 @@
       var date = new Date(a.updated_at || a.created_at || Date.now()).toLocaleDateString('zh-CN');
       var summary = a.summary || (a.content || '').replace(/[#>*`\[\]\n]/g, '').trim().slice(0, 80) + '…';
       var thumb = a.cover_image
-        ? '<img data-src="' + getImgUrl(a.cover_image) + '" alt="" style="opacity:0" onload="this.classList.add(\'loaded\');this.style.opacity=\'\'" onerror="this.style.display=\'none\'">'
+        ? '<img src="' + getImgUrl(a.cover_image) + '" alt="" class="img-loaded" onerror="this.style.display=\'none\'">'
         : '<span style="position:relative;z-index:1;font-size:2.5rem;">📄</span>';
       return '<article class="art-card fade-in" data-id="' + a.id + '">' +
         '<div class="art-thumb">' + thumb + '</div>' +
@@ -1053,7 +1070,7 @@
     if (layout && about.title) {
       var avatarContent = '';
       if (about.avatar_url) {
-        avatarContent = '<img data-src="' + BASE + '/' + about.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0" alt="avatar" onload="this.classList.add(\'loaded\');this.style.opacity=\'\'" onerror="this.style.display=\'none\'">';
+        avatarContent = '<img src="' + BASE + '/' + about.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" class="img-loaded" alt="avatar" onerror="this.style.display=\'none\'">';
       } else {
         avatarContent = (about.avatar || '👤');
       }
@@ -1071,10 +1088,6 @@
       textHtml += '</div>';
       layout.innerHTML = avatarHtml + textHtml;
       observeAll(layout);
-      // 启动头像懒加载
-      layout.querySelectorAll('img[data-src]').forEach(function (img) {
-        ImagePreloader.observe(img);
-      });
     }
 
     // 时间线
