@@ -24,6 +24,9 @@
   [data-theme="emerald"]{--accent:#059669;--accent-l:#34d399;--accent-d:#047857;--glow:rgba(5,150,105,.25);--soft:rgba(5,150,105,.08);--g1:linear-gradient(135deg,#059669,#34d399,#a3e635)}
   [data-theme="amber"]{--accent:#d97706;--accent-l:#fbbf24;--accent-d:#b45309;--glow:rgba(217,119,6,.25);--soft:rgba(217,119,6,.08);--g1:linear-gradient(135deg,#d97706,#fbbf24,#f97316)}
   [data-theme="ocean"]{--accent:#0284c7;--accent-l:#38bdf8;--accent-d:#0369a1;--glow:rgba(2,132,199,.25);--soft:rgba(2,132,199,.08);--g1:linear-gradient(135deg,#0284c7,#38bdf8,#818cf8)}
+  [data-theme="purple"]{--accent:#9333ea;--accent-l:#c084fc;--accent-d:#7e22ce;--glow:rgba(147,51,234,.25);--soft:rgba(147,51,234,.08);--g1:linear-gradient(135deg,#9333ea,#c084fc,#f472b6)}
+  [data-theme="sunset"]{--accent:#f97316;--accent-l:#fb923c;--accent-d:#ea580c;--glow:rgba(249,115,22,.25);--soft:rgba(249,115,22,.08);--g1:linear-gradient(135deg,#f97316,#fb923c,#facc15)}
+  [data-theme="mint"]{--accent:#10b981;--accent-l:#34d399;--accent-d:#059669;--glow:rgba(16,185,129,.25);--soft:rgba(16,185,129,.08);--g1:linear-gradient(135deg,#10b981,#6ee7b7,#a7f3d0)}
   [data-theme="dark"]{
     --bg:#0a0a0f;--bg2:#12121a;--card:#1a1a24;--hover:#22222e;
     --accent:#818cf8;--accent-l:#a5b4fc;--accent-d:#6366f1;
@@ -86,7 +89,61 @@
   .tp-opt[data-t="emerald"]{background:linear-gradient(135deg,#059669,#34d399)}
   .tp-opt[data-t="amber"]{background:linear-gradient(135deg,#d97706,#fbbf24)}
   .tp-opt[data-t="ocean"]{background:linear-gradient(135deg,#0284c7,#38bdf8)}
+  .tp-opt[data-t="purple"]{background:linear-gradient(135deg,#9333ea,#c084fc)}
+  .tp-opt[data-t="sunset"]{background:linear-gradient(135deg,#f97316,#facc15)}
+  .tp-opt[data-t="mint"]{background:linear-gradient(135deg,#10b981,#6ee7b7)}
   .tp-opt[data-t="dark"]{background:linear-gradient(135deg,#1e1e2e,#6366f1)}
+
+  /* 语言切换按钮 */
+  .lang-btn{width:38px;height:38px;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:.75rem;font-weight:600;color:var(--text2);display:flex;align-items:center;justify-content:center;transition:all .3s}
+  .lang-btn:hover{border-color:var(--accent);background:var(--soft);color:var(--accent)}
+
+  /* 渐变动效 */
+  @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+  @keyframes gradientFlow{0%{background-position:0% 0%}100%{background-position:200% 200%}}
+  @keyframes glowPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.7;transform:scale(1.05)}}
+  @keyframes borderGlow{0%,100%{box-shadow:0 0 5px var(--accent),0 0 10px var(--glow)}50%{box-shadow:0 0 15px var(--accent),0 0 25px var(--glow)}}
+  @keyframes floatGradient{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-15px) rotate(5deg)}}
+  @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+  .hero-avatar{animation:float 6s ease-in-out infinite,borderGlow 3s ease-in-out infinite}
+
+  .bg-grid{animation:glowPulse 8s ease-in-out infinite}
+
+  .hero::before{animation:floatGradient 10s ease-in-out infinite}
+
+  .hero h1 .hl{
+    background:var(--g1);
+    background-size:200% 200%;
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+    animation:gradientFlow 4s ease infinite;
+  }
+
+  .btn-primary{
+    background:var(--g1);
+    background-size:200% 200%;
+    animation:gradientShift 4s ease infinite;
+  }
+
+  .stat-num{
+    background:var(--g1);
+    background-size:200% 200%;
+    animation:gradientFlow 4s ease infinite;
+  }
+
+  .about-ava{animation:borderGlow 3s ease-in-out infinite}
+
+  .proj-card:hover{border-color:var(--accent);animation:borderGlow 2s ease-in-out infinite}
+
+  .gal-item:hover{animation:borderGlow 2s ease-in-out infinite}
+
+  .art-card:hover{animation:borderGlow 2s ease-in-out infinite}
+
+  /* 主题切换过渡动效 */
+  [data-theme] *{transition:background-color .5s ease,border-color .5s ease,color .5s ease}
+  .theme-transition{transition:all .6s cubic-bezier(.4,0,.2,1)}
 
   /* 移动端汉堡 */
   .hamburger{display:none;width:38px;height:38px;background:none;border:1px solid var(--border);border-radius:10px;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px}
@@ -315,22 +372,26 @@
     <div class="nav-inner">
       <a href="#home" class="logo" id="nav-logo">我的博客</a>
       <ul class="nav-links" id="nav-links">
-        <li><a href="#home">首页</a></li>
-        <li><a href="#projects">作品</a></li>
-        <li><a href="#gallery">相册</a></li>
-        <li><a href="#articles">文章</a></li>
-        <li><a href="#about">关于</a></li>
-        <li><a href="#contact">联系</a></li>
+        <li><a href="#home" data-i18n="nav_home">首页</a></li>
+        <li><a href="#projects" data-i18n="nav_projects">作品</a></li>
+        <li><a href="#gallery" data-i18n="nav_gallery">相册</a></li>
+        <li><a href="#articles" data-i18n="nav_articles">文章</a></li>
+        <li><a href="#about" data-i18n="nav_about">关于</a></li>
+        <li><a href="#contact" data-i18n="nav_contact">联系</a></li>
       </ul>
       <div class="nav-right">
+        <button class="lang-btn" id="lang-btn" title="切换语言">EN</button>
         <div class="theme-btn" id="theme-btn" title="切换主题">🎨</div>
         <div class="theme-panel" id="theme-panel">
-          <div class="tp-label">选择主题</div>
+          <div class="tp-label" id="tp-label">选择主题</div>
           <div class="tp-opt active" data-t="indigo" title="靛蓝"></div>
           <div class="tp-opt" data-t="rose" title="玫瑰"></div>
           <div class="tp-opt" data-t="emerald" title="翡翠"></div>
           <div class="tp-opt" data-t="amber" title="琥珀"></div>
           <div class="tp-opt" data-t="ocean" title="海洋"></div>
+          <div class="tp-opt" data-t="purple" title="紫色"></div>
+          <div class="tp-opt" data-t="sunset" title="日落"></div>
+          <div class="tp-opt" data-t="mint" title="薄荷"></div>
           <div class="tp-opt" data-t="dark" title="暗黑"></div>
         </div>
         <button class="hamburger" id="hamburger">
@@ -357,9 +418,9 @@
     <section id="projects" class="section">
       <div class="container">
         <div class="sec-header fade-in">
-          <div class="sec-badge">// PROJECTS</div>
-          <h2 class="sec-title">作品展示</h2>
-          <p class="sec-desc">精心打磨的 CAD 自动化工具，让效率翻倍</p>
+          <div class="sec-badge" data-i18n="badge_projects">// PROJECTS</div>
+          <h2 class="sec-title" data-i18n="title_projects">作品展示</h2>
+          <p class="sec-desc" data-i18n="desc_projects">精心打磨的 CAD 自动化工具，让效率翻倍</p>
         </div>
         <div class="projects-grid" id="projects-grid"></div>
       </div>
@@ -369,9 +430,9 @@
     <section id="gallery" class="section gallery-section">
       <div class="container">
         <div class="sec-header fade-in">
-          <div class="sec-badge">// GALLERY</div>
-          <h2 class="sec-title">相册</h2>
-          <p class="sec-desc">记录开发历程，留存每一个灵感瞬间</p>
+          <div class="sec-badge" data-i18n="badge_gallery">// GALLERY</div>
+          <h2 class="sec-title" data-i18n="title_gallery">相册</h2>
+          <p class="sec-desc" data-i18n="desc_gallery">记录开发历程，留存每一个灵感瞬间</p>
         </div>
         <div class="gal-filters" id="gal-filters"></div>
         <div class="gallery-grid" id="gallery-grid"></div>
@@ -382,9 +443,9 @@
     <section id="articles" class="section">
       <div class="container">
         <div class="sec-header fade-in">
-          <div class="sec-badge">// ARTICLES</div>
-          <h2 class="sec-title">技术文章</h2>
-          <p class="sec-desc">分享 CAD 二次开发经验与实用技巧</p>
+          <div class="sec-badge" data-i18n="badge_articles">// ARTICLES</div>
+          <h2 class="sec-title" data-i18n="title_articles">技术文章</h2>
+          <p class="sec-desc" data-i18n="desc_articles">分享 CAD 二次开发经验与实用技巧</p>
         </div>
         <div class="articles-grid" id="articles-grid"></div>
       </div>
@@ -394,8 +455,8 @@
     <section id="about" class="section about-section">
       <div class="container">
         <div class="sec-header fade-in">
-          <div class="sec-badge">// ABOUT ME</div>
-          <h2 class="sec-title" id="about-title">关于我</h2>
+          <div class="sec-badge" data-i18n="badge_about">// ABOUT ME</div>
+          <h2 class="sec-title" id="about-title" data-i18n="title_about">关于我</h2>
         </div>
         <div class="about-layout" id="about-layout"></div>
         <div class="timeline" id="timeline" style="display:none"></div>
@@ -406,8 +467,8 @@
     <section id="contact" class="section">
       <div class="container">
         <div class="sec-header fade-in">
-          <div class="sec-badge">// CONTACT</div>
-          <h2 class="sec-title">联系方式</h2>
+          <div class="sec-badge" data-i18n="badge_contact">// CONTACT</div>
+          <h2 class="sec-title" data-i18n="title_contact">联系方式</h2>
         </div>
         <div class="contact-grid" id="contact-grid"></div>
       </div>
@@ -445,10 +506,10 @@
           <span id="pdf-title"></span>
         </div>
         <div class="pdf-modal-actions">
-          <button class="pdf-nav-btn" id="pdf-prev" onclick="window.pdfChangePage(-1)" title="上一页">‹</button>
+          <button class="pdf-nav-btn" id="pdf-prev" onclick="window.pdfChangePage(-1)" title="上一页"><span data-i18n="pdf_prev">‹</span></button>
           <span class="pdf-page-info" id="pdf-page-info">0 / 0</span>
-          <button class="pdf-nav-btn" id="pdf-next" onclick="window.pdfChangePage(1)" title="下一页">›</button>
-          <a class="pdf-download-btn" id="pdf-download" href="#" download>下载 PDF</a>
+          <button class="pdf-nav-btn" id="pdf-next" onclick="window.pdfChangePage(1)" title="下一页"><span data-i18n="pdf_next">›</span></button>
+          <a class="pdf-download-btn" id="pdf-download" href="#" download data-i18n="pdf_download">下载PDF</a>
         </div>
         <button class="pdf-close-btn" onclick="closePDFModal()" title="关闭">×</button>
       </div>
