@@ -1,19 +1,8 @@
 {
   "site": {
-    "title": "不加班的小刘 - CAD二次开发 | 个人博客",
+    "title": "CAD效率工具箱",
     "logo": "🔧 不加班的小刘",
-    "footer_bottom": "© 2026 不加班的小刘 · 用心做工具，真诚待用户",
-    "footer_desc": "专注于AutoCAD二次开发，为工程人打造实用的效率工具。让CAD操作更高效，让工作回归自动化。"
-  },
-  "theme": {
-    "default": "indigo",
-    "available": [
-      "indigo",
-      "rose",
-      "emerald",
-      "amber",
-      "ocean",
-      "dark"
-    ]
+    "footer_bottom": "© 2026 CAD效率工具箱",
+    "footer_desc": "让CAD操作更高效"
   }
 }
