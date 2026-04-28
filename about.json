@@ -1,0 +1,37 @@
+{
+  "title": "关于我",
+  "subtitle": "一个专注于CAD自动化的开发者",
+  "avatar": "👨💻",
+  "paragraphs": [
+    "你好，我是小刘，一名AutoCAD二次开发爱好者，也是一位热爱效率工具的工程师。",
+    "白天写代码，晚上写插件。我深知工程人的痛点——那些重复性的CAD操作、那些繁琐的图纸处理。工具箱的诞生，就是为了让这些工作变得简单高效。",
+    "如果你有好的想法、需求或者建议，欢迎随时联系我。也许下一个功能，就是为你而写。"
+  ],
+  "skills": [
+    "C#",
+    ".NET",
+    "AutoCAD API",
+    "PaddleOCR",
+    "Supabase",
+    "WPF",
+    "TypeScript",
+    "CAD二次开发"
+  ],
+  "timeline": [
+    {
+      "year": "2024",
+      "title": "开始CAD二次开发之旅",
+      "description": "第一次接触AutoCAD .NET API，写出了第一个\"Hello World\"插件"
+    },
+    {
+      "year": "2025",
+      "title": "散线转文字工具发布",
+      "description": "集成PaddleOCR，实现CAD散线文字智能识别，获得第一批用户"
+    },
+    {
+      "year": "2026",
+      "title": "网络授权系统上线",
+      "description": "基于Supabase构建完整的在线授权系统，工具迈向商业化"
+    }
+  ]
+}
