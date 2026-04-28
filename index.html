@@ -173,6 +173,18 @@
   .lb-close:hover{background:rgba(255,255,255,.3)}
   .lb-caption{position:absolute;bottom:2rem;color:#fff;text-align:center;width:100%;font-size:.95rem}
 
+  /* 视频弹窗 */
+  .video-modal{position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s}
+  .video-modal.show{opacity:1}
+  .video-modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.75)}
+  .video-modal-box{position:relative;width:90%;max-width:860px;background:#1a1a24;border-radius:16px;overflow:hidden;box-shadow:0 25px 80px rgba(0,0,0,.5);transform:scale(.95);transition:transform .3s}
+  .video-modal.show .video-modal-box{transform:scale(1)}
+  .video-modal-header{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1.2rem;background:rgba(255,255,255,.05);color:#fff;font-size:.95rem;font-weight:500}
+  .video-modal-close{width:32px;height:32px;background:rgba(255,255,255,.1);border:none;border-radius:50%;color:#fff;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+  .video-modal-close:hover{background:rgba(255,255,255,.25)}
+  .video-modal-body{position:relative;width:100%;padding-bottom:56.25%;height:0}
+  .video-modal-body iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+
   /* ===== 文章 ===== */
   .articles-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1.8rem}
   .art-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;transition:all .4s;cursor:pointer}
