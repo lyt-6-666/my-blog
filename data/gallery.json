@@ -1,20 +1,11 @@
 [
   {
-    "id": "gal_1777378816303",
+    "id": "gal_1777379836388",
     "title": "不加班的小刘_工具箱",
     "description": "",
-    "image_url": "blob:http://localhost:8088/ce46d054-4615-4bf5-9d10-73be5f43c9bf",
+    "image_url": "images/proj_1777379836385_ro80.png",
     "category": "screenshot",
     "order": 0,
-    "created_at": "2026-04-28T12:20:16.303Z"
-  },
-  {
-    "id": "gal_1777378835986",
-    "title": "散线转文字",
-    "description": "",
-    "image_url": "blob:http://localhost:8088/b610af5b-9cee-41e0-a761-0fca72f08b05",
-    "category": "screenshot",
-    "order": 0,
-    "created_at": "2026-04-28T12:20:35.986Z"
+    "created_at": "2026-04-28T12:37:16.388Z"
   }
 ]
