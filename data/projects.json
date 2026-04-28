@@ -13,7 +13,7 @@
     "gradient": "linear-gradient(135deg, #f59e0b, #ef4444)",
     "link": "#",
     "video_url": "<iframe src=\"//player.bilibili.com/player.html?isOutside=true&aid=116346285457519&bvid=BV1kJDTBEEGs&cid=37237100508&p=1\" scrolling=\"no\" border=\"0\" frameborder=\"no\" framespacing=\"0\" allowfullscreen=\"true\"></iframe>",
-    "doc_url": "docs/.md",
+    "doc_url": "docs/broken_doc_1.md",
     "pdf_url": "",
     "order": 1
   },
@@ -51,7 +51,7 @@
     "gradient": "linear-gradient(135deg, #f59e0b, #ef4444)",
     "link": "#",
     "video_url": "",
-    "doc_url": "docs/.txt",
+    "doc_url": "docs/broken_doc_2.txt",
     "pdf_url": "",
     "order": 3
   }
