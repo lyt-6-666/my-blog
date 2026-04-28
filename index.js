@@ -2,11 +2,75 @@
  * index.js - 博客前端数据加载器
  * 从 data/*.json 读取内容，动态渲染页面
  * 与 admin.html 的数据字段一一对应
+ * 图片秒加载优化：骨架屏 + 预加载 + 渐进式淡入
  */
 (function () {
   'use strict';
 
+  // ===========================
+  // 图片预加载管理器（秒加载核心）
+  // ===========================
+  var ImagePreloader = {
+    cache: new Map(),
+    loading: new Map(), // 正在加载中的图片
+    observer: null,
+
+    // 预加载单张图片
+    preload(url) {
+      if (!url || this.cache.has(url) || this.loading.has(url)) {
+        return this.cache.has(url) ? Promise.resolve(this.cache.get(url)) : Promise.resolve();
+      }
+      return new Promise((resolve, reject) => {
+        this.loading.set(url, true);
+        var img = new Image();
+        img.onload = () => {
+          this.cache.set(url, img);
+          this.loading.delete(url);
+          resolve(img);
+        };
+        img.onerror = () => {
+          this.loading.delete(url);
+          resolve(); // 失败也继续
+        };
+        img.src = url;
+      });
+    },
+
+    // 批量预加载
+    async preloadAll(urls) {
+      await Promise.all(urls.filter(Boolean).map(url => this.preload(url)));
+    },
+
+    // 初始化 IntersectionObserver（图片即将进入视口时预加载）
+    initObserver() {
+      if (this.observer) return;
+      this.observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            var img = entry.target;
+            var src = img.getAttribute('data-src');
+            if (src) {
+              this.preload(src).then(() => {
+                img.src = src;
+                img.removeAttribute('data-src');
+              });
+            }
+            this.observer.unobserve(img);
+          }
+        });
+      }, { rootMargin: '200px 0px' }); // 提前200px开始加载
+    },
+
+    // 为图片添加懒加载监听
+    observe(img) {
+      if (!this.observer) this.initObserver();
+      this.observer.observe(img);
+    }
+  };
+
+  // ===========================
   // 自动适配本地 localhost 和 GitHub Pages 子目录
+  // ===========================
   var BASE = (function () {
     var p = location.pathname.replace(/\/[^/]*$/, '');
     // GitHub Pages 子目录：/my-blog 等
@@ -22,6 +86,23 @@
     if (!path) return '';
     if (path.startsWith('http')) return path;
     return IS_LOCAL ? (BASE ? BASE + '/' + path : path) : (CDN + '/' + path);
+  }
+
+  // ===========================
+  // 创建带骨架屏的图片元素
+  // ===========================
+  function createLazyImage(url, alt, className, isFirstScreen) {
+    if (!url) {
+      return '<span class="img-skeleton" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">🖼️</span>';
+    }
+    var fullUrl = getImgUrl(url);
+    if (isFirstScreen) {
+      // 首屏图片：立即加载，添加淡入效果
+      return '<img src="' + fullUrl + '" alt="' + esc(alt) + '" class="' + (className || '') + '" onload="this.classList.add(\'img-loaded\')" onerror="this.style.display=\'none\'">';
+    } else {
+      // 非首屏图片：使用 data-src 懒加载
+      return '<img data-src="' + fullUrl + '" alt="' + esc(alt) + '" class="img-skeleton ' + (className || '') + '" style="opacity:0" onload="this.classList.remove(\'img-skeleton\');this.classList.add(\'img-loaded\');this.style.opacity=\'\'" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">';
+    }
   }
 
   // ===========================
@@ -365,9 +446,39 @@
 
       // 观察所有淡入元素
       document.querySelectorAll('.fade-in').forEach(function (el) { io.observe(el); });
+
+      // 首屏图片预加载（DOM 渲染完成后立即开始，不等待滚动）
+      requestIdleCallback(function () {
+        preloadFirstScreenImages(projects, gallery, articles, about);
+      });
     }).catch(function (err) {
       console.error('[博客] 数据加载失败:', err);
     });
+  }
+
+  // ===========================
+  // 首屏图片预加载（秒加载核心）
+  // ===========================
+  function preloadFirstScreenImages(projects, gallery, articles, about) {
+    var urls = [];
+    // 作品封面（前3个）
+    projects.slice(0, 3).forEach(function (p) {
+      if (p.icon_url) urls.push(getImgUrl(p.icon_url));
+    });
+    // 相册（前6个）
+    gallery.slice(0, 6).forEach(function (g) {
+      if (g.image_url) urls.push(getImgUrl(g.image_url));
+    });
+    // 文章封面（前3个）
+    articles.filter(function (a) { return a.published !== false; }).slice(0, 3).forEach(function (a) {
+      if (a.cover_image) urls.push(getImgUrl(a.cover_image));
+    });
+    // 头像
+    if (about.avatar_url) urls.push(getImgUrl(about.avatar_url));
+
+    // 批量预加载（静默进行，不阻塞渲染）
+    ImagePreloader.preloadAll(urls);
+    console.log('[博客] 首屏图片预加载开始:', urls.length, '张');
   }
 
   // ===========================
@@ -490,7 +601,7 @@
       // 图标：有图片时铺满顶部，否则 emoji 居中显示
       var iconHtml = '';
       if (p.icon_url) {
-        iconHtml = '<img src="' + BASE + '/' + p.icon_url + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;" alt="' + esc(p.title) + '">';
+        iconHtml = createLazyImage(p.icon_url, p.title, '', false);
       } else {
         iconHtml = '<span style="position:relative;z-index:1;font-size:4rem;">' + (p.emoji || '📦') + '</span>';
       }
@@ -870,9 +981,9 @@
       return;
     }
     gridEl.innerHTML = filtered.map(function (g) {
-      var imgSrc = getImgUrl(g.image_url);
-      var img = imgSrc ? '<img src="' + imgSrc + '" alt="' + esc(g.title || '') + '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">' : '';
-      var ph = !imgSrc ? '<div class="gal-ph">🖼️</div>' : '<div class="gal-ph" style="display:none">🖼️</div>';
+      var imgSrc = g.image_url ? getImgUrl(g.image_url) : '';
+      var img = imgSrc ? '<img data-src="' + imgSrc + '" alt="' + esc(g.title || '') + '" style="opacity:0" onload="this.classList.remove(\'img-skeleton\');this.classList.add(\'img-loaded\');this.style.opacity=\'\'" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">' : '';
+      var ph = !imgSrc ? '<div class="gal-ph">🖼️</div>' : '<div class="gal-ph img-skeleton" style="display:none">🖼️</div>';
       return '<div class="gal-item fade-in" data-id="' + g.id + '">' +
         ph + img +
         '<div class="gal-overlay"><h4>' + esc(g.title || '') + '</h4><p>' + esc(g.description || '') + '</p></div>' +
@@ -885,6 +996,10 @@
         var item = _galData.find(function (g) { return g.id == id; });
         if (item && item.image_url) openLightbox(item);
       });
+    });
+    // 启动懒加载观察器（图片即将进入视口时开始加载）
+    gridEl.querySelectorAll('img[data-src]').forEach(function (img) {
+      ImagePreloader.observe(img);
     });
   }
 
@@ -906,7 +1021,7 @@
       var date = new Date(a.updated_at || a.created_at || Date.now()).toLocaleDateString('zh-CN');
       var summary = a.summary || (a.content || '').replace(/[#>*`\[\]\n]/g, '').trim().slice(0, 80) + '…';
       var thumb = a.cover_image
-        ? '<img src="' + (a.cover_image.startsWith('http') ? a.cover_image : (BASE ? BASE + '/' + a.cover_image : a.cover_image)) + '" alt="">'
+        ? '<img data-src="' + getImgUrl(a.cover_image) + '" alt="" style="opacity:0" onload="this.classList.add(\'loaded\');this.style.opacity=\'\'" onerror="this.style.display=\'none\'">'
         : '<span style="position:relative;z-index:1;font-size:2.5rem;">📄</span>';
       return '<article class="art-card fade-in" data-id="' + a.id + '">' +
         '<div class="art-thumb">' + thumb + '</div>' +
@@ -921,6 +1036,10 @@
       io.observe(card);
       card.addEventListener('click', function () { openArticle(card.getAttribute('data-id')); });
     });
+    // 启动懒加载观察器
+    el.querySelectorAll('img[data-src]').forEach(function (img) {
+      ImagePreloader.observe(img);
+    });
   }
 
   // ===========================
@@ -934,7 +1053,7 @@
     if (layout && about.title) {
       var avatarContent = '';
       if (about.avatar_url) {
-        avatarContent = '<img src="' + BASE + '/' + about.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="avatar">';
+        avatarContent = '<img data-src="' + BASE + '/' + about.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0" alt="avatar" onload="this.classList.add(\'loaded\');this.style.opacity=\'\'" onerror="this.style.display=\'none\'">';
       } else {
         avatarContent = (about.avatar || '👤');
       }
@@ -952,6 +1071,10 @@
       textHtml += '</div>';
       layout.innerHTML = avatarHtml + textHtml;
       observeAll(layout);
+      // 启动头像懒加载
+      layout.querySelectorAll('img[data-src]').forEach(function (img) {
+        ImagePreloader.observe(img);
+      });
     }
 
     // 时间线
