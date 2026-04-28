@@ -270,15 +270,15 @@
       if (p.pdf_url) {
         pdfBtn = '<a onclick="openProjectPDF(\'' + esc(p.pdf_url) + '\',\'' + esc(p.title) + '\')" class="proj-pdf-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg> PDF说明</a>';
       }
-      // 图标：优先使用图片，否则 emoji
+      // 图标：有图片时铺满顶部，否则 emoji 居中显示
       var iconHtml = '';
       if (p.icon_url) {
-        iconHtml = '<img src="' + BASE + '/' + p.icon_url + '" style="position:relative;z-index:1;width:72px;height:72px;object-fit:contain;" alt="' + esc(p.title) + '">';
+        iconHtml = '<img src="' + BASE + '/' + p.icon_url + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;" alt="' + esc(p.title) + '">';
       } else {
         iconHtml = '<span style="position:relative;z-index:1;font-size:4rem;">' + (p.emoji || '📦') + '</span>';
       }
       return '<div class="proj-card fade-in">' +
-        '<div class="proj-thumb" style="background:' + gradient + '">' +
+        '<div class="proj-thumb" style="background:' + (p.icon_url ? '#000' : gradient) + '">' +
           iconHtml +
         '</div>' +
         '<div class="proj-body">' +
@@ -430,12 +430,20 @@
     loadPDFJS(fullPdfUrl);
   };
 
-  // 动态加载 PDF.js
+  // PDF.js 预加载标志（由 index.html 预加载脚本设置为 true）
+  var _pdfJsPreloaded = false;
+  // PDF 文档缓存：同一 URL 不重复 fetch+parse，命中则秒开
+  var _pdfDocCache = {};
+
+  // 动态加载 PDF.js（仅在未预加载时使用）
   function loadPDFJS(pdfUrl) {
-    // 如果已加载，直接渲染
+    // 预加载已完成，直接渲染
+    if ((_pdfJsPreloaded || window._pdfJsPreloaded) && typeof pdfjsLib !== 'undefined') {
+      renderPDF(pdfUrl);
+      return;
+    }
+    // 已动态加载过，直接渲染
     if (typeof pdfjsLib !== 'undefined') {
-      // 设置 workerSrc，禁用 worker 避免跨域问题
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
       renderPDF(pdfUrl);
       return;
     }
@@ -443,7 +451,6 @@
     script.src = (BASE ? BASE + '/' : '') + 'pdf.min.js';
     script.onload = function () {
       console.log('[PDF] pdf.min.js 加载成功');
-      // 禁用 Web Worker，直接在主线程解析（避免 GitHub Pages 跨域 worker 问题）
       pdfjsLib.GlobalWorkerOptions.workerSrc = '';
       renderPDF(pdfUrl);
     };
@@ -459,13 +466,25 @@
   var _pdfTotal = 1;
   var _pdfScale = 1.5;
 
-  // 渲染 PDF（使用 fetch + ArrayBuffer 绕过 worker，避免跨域问题）
+  // 渲染 PDF（带缓存：同一 URL 命中缓存则直接渲染，不重复 fetch+parse）
   function renderPDF(pdfUrl) {
     var loadingEl = document.getElementById('pdf-loading');
     var canvas = document.getElementById('pdf-canvas');
 
     if (typeof pdfjsLib === 'undefined') {
       showPDFError('PDF.js 未加载，请刷新页面重试');
+      return;
+    }
+
+    // 检查缓存：同一 PDF 不重复解析，命中则秒开
+    if (_pdfDocCache[pdfUrl]) {
+      console.log('[PDF] 命中缓存:', pdfUrl);
+      _pdfDoc = _pdfDocCache[pdfUrl];
+      _pdfTotal = _pdfDoc.numPages;
+      _pdfPage = 1;
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (canvas) canvas.style.display = 'block';
+      renderPDFPage(_pdfPage);
       return;
     }
 
@@ -492,6 +511,9 @@
         _pdfDoc = pdf;
         _pdfTotal = pdf.numPages;
         _pdfPage = 1;
+
+        // 缓存解析后的 PDF 对象（同一 URL 再次打开直接用，不重复 fetch+parse）
+        _pdfDocCache[pdfUrl] = pdf;
 
         if (loadingEl) loadingEl.style.display = 'none';
         if (canvas) canvas.style.display = 'block';
@@ -609,8 +631,9 @@
       return;
     }
     gridEl.innerHTML = filtered.map(function (g) {
-      var img = g.image_url ? '<img src="' + g.image_url + '" alt="' + esc(g.title || '') + '" loading="lazy" onerror="this.parentElement.querySelector(\'.gal-ph\')&&(this.style.display=\'none\')">' : '';
-      var ph = !g.image_url ? '<div class="gal-ph">🖼️</div>' : '<div class="gal-ph" style="display:none">🖼️</div>';
+      var imgSrc = g.image_url ? (g.image_url.startsWith('http') ? g.image_url : (BASE ? BASE + '/' + g.image_url : g.image_url)) : '';
+      var img = imgSrc ? '<img src="' + imgSrc + '" alt="' + esc(g.title || '') + '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">' : '';
+      var ph = !imgSrc ? '<div class="gal-ph">🖼️</div>' : '<div class="gal-ph" style="display:none">🖼️</div>';
       return '<div class="gal-item fade-in" data-id="' + g.id + '">' +
         ph + img +
         '<div class="gal-overlay"><h4>' + esc(g.title || '') + '</h4><p>' + esc(g.description || '') + '</p></div>' +
@@ -782,7 +805,7 @@
     var img = document.getElementById('lb-img');
     var cap = document.getElementById('lb-caption');
     if (!lb || !img) return;
-    img.src = item.image_url;
+    img.src = item.image_url.startsWith('http') ? item.image_url : (BASE ? BASE + '/' + item.image_url : item.image_url);
     img.alt = item.title || '';
     if (cap) cap.innerHTML = '<strong>' + esc(item.title || '') + '</strong>' + (item.description ? '<br>' + esc(item.description) : '');
     lb.classList.add('show');
