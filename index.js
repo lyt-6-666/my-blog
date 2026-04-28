@@ -230,9 +230,16 @@
       var tags = (p.tags || []).slice(0, 4).map(function (t) { return '<span class="proj-tag">' + esc(t) + '</span>'; }).join('');
       var gradient = p.gradient || 'var(--g1)';
       var href = p.link && p.link !== '#' ? ' href="' + p.link + '" target="_blank"' : '';
+      // 图标：优先使用图片，否则 emoji
+      var iconHtml = '';
+      if (p.icon_url) {
+        iconHtml = '<img src="' + BASE + '/' + p.icon_url + '" style="position:relative;z-index:1;width:72px;height:72px;object-fit:contain;" alt="' + esc(p.title) + '">';
+      } else {
+        iconHtml = '<span style="position:relative;z-index:1;font-size:4rem;">' + (p.emoji || '📦') + '</span>';
+      }
       return '<div class="proj-card fade-in">' +
         '<div class="proj-thumb" style="background:' + gradient + '">' +
-          '<span style="position:relative;z-index:1;font-size:4rem;">' + (p.emoji || '📦') + '</span>' +
+          iconHtml +
         '</div>' +
         '<div class="proj-body">' +
           '<div class="proj-tags">' + tags + '</div>' +
@@ -351,7 +358,13 @@
 
     var layout = document.getElementById('about-layout');
     if (layout && about.title) {
-      var avatarHtml = '<div class="about-ava-wrap fade-in"><div class="about-ava">' + (about.avatar || '👤') + '</div></div>';
+      var avatarContent = '';
+      if (about.avatar_url) {
+        avatarContent = '<img src="' + BASE + '/' + about.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="avatar">';
+      } else {
+        avatarContent = (about.avatar || '👤');
+      }
+      var avatarHtml = '<div class="about-ava-wrap fade-in"><div class="about-ava">' + avatarContent + '</div></div>';
       var textHtml = '<div class="about-text fade-in">';
       if (about.subtitle) textHtml += '<p style="color:var(--accent);font-size:1.05rem;margin-bottom:1rem;">' + esc(about.subtitle) + '</p>';
       if (about.paragraphs && about.paragraphs.length > 0) {
