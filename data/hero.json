@@ -10,8 +10,20 @@
   "btn_2_text": "浏览文章",
   "btn_2_link": "#articles",
   "stats": [
-    { "number": 500, "suffix": "+", "label": "活跃用户" },
-    { "number": 50, "suffix": "+", "label": "功能模块" },
-    { "number": 99, "suffix": "%", "label": "用户好评" }
+    {
+      "number": 200,
+      "suffix": "+",
+      "label": "活跃用户"
+    },
+    {
+      "number": 10,
+      "suffix": "+",
+      "label": "功能模块"
+    },
+    {
+      "number": 99,
+      "suffix": "%",
+      "label": "用户好评"
+    }
   ]
 }
