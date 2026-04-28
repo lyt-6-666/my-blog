@@ -1,26 +1,19 @@
 {
-  "title": "联系我",
-  "subtitle": "有任何问题或建议，欢迎随时联系",
   "cards": [
     {
       "icon": "📧",
-      "title": "邮件联系",
-      "value": "contact@example.com"
+      "title": "邮箱",
+      "value": "1367273254@qq,com"
     },
     {
       "icon": "💬",
-      "title": "微信",
-      "value": "xiaoliu_cad"
+      "title": "qq",
+      "value": "wechat_id"
     },
     {
       "icon": "🐙",
       "title": "GitHub",
-      "value": "github.com/xiaoliu"
-    },
-    {
-      "icon": "📱",
-      "title": "微信公众号",
-      "value": "不加班的小刘"
+      "value": "github.com/yourname"
     }
   ]
 }
