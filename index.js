@@ -997,9 +997,20 @@
       gridEl.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:2rem;">' + t('empty_gal_cat') + '</p>';
       return;
     }
-    gridEl.innerHTML = filtered.map(function (g) {
+    // 首屏前6张直接用 src 立即加载，第6张之后用 data-src 懒加载
+    gridEl.innerHTML = filtered.map(function (g, idx) {
       var imgSrc = g.image_url ? getImgUrl(g.image_url) : '';
-      var img = imgSrc ? '<img data-src="' + imgSrc + '" alt="' + esc(g.title || '') + '" style="opacity:0" onload="this.classList.remove(\'img-skeleton\');this.classList.add(\'img-loaded\');this.style.opacity=\'\'" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">' : '';
+      // 首屏前6张直接用 src，第6张之后用 data-src 懒加载
+      var useLazy = idx >= 6;
+      var img = '';
+      if (imgSrc) {
+        if (useLazy) {
+          img = '<img data-src="' + imgSrc + '" alt="' + esc(g.title || '') + '" style="opacity:0" onload="this.classList.remove(\'img-skeleton\');this.classList.add(\'img-loaded\');this.style.opacity=\'\'" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">';
+        } else {
+          // 首屏图片直接加载（秒显示）
+          img = '<img src="' + imgSrc + '" alt="' + esc(g.title || '') + '" class="img-loaded" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">';
+        }
+      }
       var ph = !imgSrc ? '<div class="gal-ph">🖼️</div>' : '<div class="gal-ph img-skeleton" style="display:none">🖼️</div>';
       return '<div class="gal-item fade-in" data-id="' + g.id + '">' +
         ph + img +
