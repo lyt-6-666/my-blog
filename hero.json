@@ -1,0 +1,29 @@
+{
+  "badge": "CAD二次开发 · 效率工具 · 正在创造",
+  "headline_1": "让CAD操作",
+  "headline_2": "更高效",
+  "headline_3": "让工作回归",
+  "headline_4": "自动化",
+  "description": "专注于AutoCAD二次开发，为工程人打造实用的效率工具。不加班的小刘工具箱，让繁琐的CAD操作一键完成。",
+  "btn_1_text": "查看作品",
+  "btn_1_link": "#projects",
+  "btn_2_text": "浏览文章",
+  "btn_2_link": "#articles",
+  "stats": [
+    {
+      "number": 500,
+      "suffix": "",
+      "label": "活跃用户"
+    },
+    {
+      "number": 2,
+      "suffix": "",
+      "label": "精品工具"
+    },
+    {
+      "number": 99,
+      "suffix": "%",
+      "label": "好评率"
+    }
+  ]
+}
