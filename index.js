@@ -552,13 +552,34 @@
     if (!modal || !content) return;
     var date = new Date(a.updated_at || a.created_at || Date.now()).toLocaleDateString('zh-CN');
     var tags = (a.tags || []).map(function (t) { return '<span style="background:var(--soft);color:var(--accent);padding:2px 8px;border-radius:6px;font-size:.78rem;">' + esc(t) + '</span>'; }).join(' ');
-    content.innerHTML =
-      '<p style="color:var(--muted);font-size:.88rem;">' + date + ' · ' + esc(a.category || '其他') + '</p>' +
-      '<h1 style="margin:.6rem 0 1rem;font-size:1.8rem;line-height:1.3">' + esc(a.title) + '</h1>' +
-      (tags ? '<div style="margin-bottom:1.5rem;display:flex;gap:.4rem;flex-wrap:wrap;">' + tags + '</div>' : '') +
-      md2html(a.content || '');
+    // 优先从 doc_url 加载文档内容
+    if (a.doc_url) {
+      content.innerHTML = '<div style="color:var(--muted);font-size:.88rem;">加载中...</div>';
+      fetchDocContent(a.doc_url, function(docContent) {
+        content.innerHTML =
+          '<p style="color:var(--muted);font-size:.88rem;">' + date + ' · ' + esc(a.category || '其他') + '</p>' +
+          '<h1 style="margin:.6rem 0 1rem;font-size:1.8rem;line-height:1.3">' + esc(a.title) + '</h1>' +
+          (tags ? '<div style="margin-bottom:1.5rem;display:flex;gap:.4rem;flex-wrap:wrap;">' + tags + '</div>' : '') +
+          (docContent ? md2html(docContent) : '<p style="color:var(--err);">文档加载失败</p>');
+      });
+    } else {
+      content.innerHTML =
+        '<p style="color:var(--muted);font-size:.88rem;">' + date + ' · ' + esc(a.category || '其他') + '</p>' +
+        '<h1 style="margin:.6rem 0 1rem;font-size:1.8rem;line-height:1.3">' + esc(a.title) + '</h1>' +
+        (tags ? '<div style="margin-bottom:1.5rem;display:flex;gap:.4rem;flex-wrap:wrap;">' + tags + '</div>' : '') +
+        md2html(a.content || '');
+    }
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
+  }
+
+  // 加载外部文档内容
+  function fetchDocContent(docUrl, callback) {
+    var fullUrl = (docUrl.startsWith('http') ? '' : BASE + '/') + docUrl;
+    fetch(fullUrl)
+      .then(function(r) { return r.text(); })
+      .then(function(text) { callback(text); })
+      .catch(function() { callback(null); });
   }
 
   function closeArticle() {
