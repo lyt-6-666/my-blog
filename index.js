@@ -2,7 +2,9 @@
 (function() {
     'use strict';
 
-    var API_BASE = '/data';
+    // 自动适配本地和 GitHub Pages 子目录
+    var BASE_PATH = location.pathname.replace(/\/[^/]*$/, '');
+    var API_BASE = BASE_PATH + '/data';
 
     // Scroll progress & back to top
     window.addEventListener('scroll', function() {
