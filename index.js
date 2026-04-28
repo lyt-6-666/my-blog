@@ -62,6 +62,10 @@
       empty_articles: '暂无文章，去后台写第一篇吧 ✏️',
       empty_contact: '暂无联系方式',
       empty_gal_cat: '该分类暂无图片',
+      // 相册分类翻译
+      cat_screenshot: '截图',
+      cat_photo: '照片',
+      cat_design: '设计',
       // 按钮
       btn_view_details: '查看详情 →',
       btn_watch_video: '观看视频',
@@ -83,14 +87,7 @@
       // 关于页
       timeline_title: '经历',
       // 主题名称
-      theme_indigo: '靛蓝',
       theme_rose: '玫瑰',
-      theme_emerald: '翡翠',
-      theme_amber: '琥珀',
-      theme_ocean: '海洋',
-      theme_purple: '紫色',
-      theme_sunset: '日落',
-      theme_mint: '薄荷',
       theme_dark: '暗黑',
     },
     en: {
@@ -127,6 +124,10 @@
       empty_articles: 'No articles yet. Write your first post ✏️',
       empty_contact: 'No contact information',
       empty_gal_cat: 'No images in this category',
+      // 相册分类翻译
+      cat_screenshot: 'Screenshot',
+      cat_photo: 'Photo',
+      cat_design: 'Design',
       // 按钮
       btn_view_details: 'View Details →',
       btn_watch_video: 'Watch Video',
@@ -148,14 +149,7 @@
       // 关于页
       timeline_title: 'Experience',
       // 主题名称
-      theme_indigo: 'Indigo',
       theme_rose: 'Rose',
-      theme_emerald: 'Emerald',
-      theme_amber: 'Amber',
-      theme_ocean: 'Ocean',
-      theme_purple: 'Purple',
-      theme_sunset: 'Sunset',
-      theme_mint: 'Mint',
       theme_dark: 'Dark',
     }
   };
@@ -187,9 +181,8 @@
 
     // 更新主题选项 title
     var themeMap = {
-      'indigo': 'theme_indigo', 'rose': 'theme_rose', 'emerald': 'theme_emerald',
-      'amber': 'theme_amber', 'ocean': 'theme_ocean', 'purple': 'theme_purple',
-      'sunset': 'theme_sunset', 'mint': 'theme_mint', 'dark': 'theme_dark'
+      'rose': 'theme_rose',
+      'dark': 'theme_dark'
     };
     document.querySelectorAll('.tp-opt').forEach(function(o) {
       var tKey = themeMap[o.getAttribute('data-t')];
@@ -243,8 +236,8 @@
   // ===========================
   // 主题切换
   // ===========================
-  var THEMES = ['indigo', 'rose', 'emerald', 'amber', 'ocean', 'purple', 'sunset', 'mint', 'dark'];
-  var curTheme = localStorage.getItem('blog-theme') || 'indigo';
+  var THEMES = ['rose', 'dark'];
+  var curTheme = localStorage.getItem('blog-theme') || 'rose';
 
   function applyTheme(t) {
     curTheme = t;
@@ -266,7 +259,7 @@
         var newLang = currentLang === 'zh' ? 'en' : 'zh';
         applyLanguage(newLang);
         // 重新渲染动态内容
-        if (_galData.length > 0) renderGalGrid(document.querySelector('.filter-btn.active')?.getAttribute('data-cat') || '全部');
+        if (_galData.length > 0) renderGallery(_galData);
         renderContact(window._contactData || {});
       });
     }
@@ -841,14 +834,20 @@
       return;
     }
 
-    // 分类
+    // 分类（翻译后显示）
     var cats = [currentLang === 'zh' ? '全部' : 'All'];
+    var catMap = {}; // 保存原始分类 -> 翻译后分类
     _galData.forEach(function (g) {
-      if (g.category && cats.indexOf(g.category) < 0) cats.push(g.category);
+      if (g.category && cats.indexOf(g.category) < 0) {
+        var translatedCat = t('cat_' + g.category) || g.category;
+        catMap[g.category] = translatedCat;
+        cats.push(g.category);
+      }
     });
     if (filtersEl) {
       filtersEl.innerHTML = cats.map(function (c, i) {
-        return '<button class="filter-btn' + (i === 0 ? ' active' : '') + '" data-cat="' + c + '">' + c + '</button>';
+        var displayCat = (c === '全部' || c === 'All') ? c : (catMap[c] || c);
+        return '<button class="filter-btn' + (i === 0 ? ' active' : '') + '" data-cat="' + c + '">' + displayCat + '</button>';
       }).join('');
       filtersEl.addEventListener('click', function (e) {
         var btn = e.target.closest('.filter-btn');
