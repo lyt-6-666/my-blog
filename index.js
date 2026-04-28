@@ -25,6 +25,207 @@
   }
 
   // ===========================
+  // 国际化（i18n）系统
+  // ===========================
+  var I18N = {
+    zh: {
+      // 导航
+      nav_home: '首页',
+      nav_projects: '作品',
+      nav_gallery: '相册',
+      nav_articles: '文章',
+      nav_about: '关于',
+      nav_contact: '联系',
+      // 主题面板
+      theme_label: '选择主题',
+      // 语言按钮
+      lang_switch: 'EN',
+      // 徽章
+      badge_projects: '// 作品',
+      badge_gallery: '// 相册',
+      badge_articles: '// 文章',
+      badge_about: '// 关于我',
+      badge_contact: '// 联系',
+      // 标题
+      title_projects: '作品展示',
+      title_gallery: '相册',
+      title_articles: '技术文章',
+      title_about: '关于我',
+      title_contact: '联系方式',
+      // 描述
+      desc_projects: '精心打磨的 CAD 自动化工具，让效率翻倍',
+      desc_gallery: '记录开发历程，留存每一个灵感瞬间',
+      desc_articles: '分享 CAD 二次开发经验与实用技巧',
+      // 空状态
+      empty_projects: '暂无作品，快去后台添加吧 🚀',
+      empty_gallery: '暂无图片，去后台上传第一张吧 📷',
+      empty_articles: '暂无文章，去后台写第一篇吧 ✏️',
+      empty_contact: '暂无联系方式',
+      empty_gal_cat: '该分类暂无图片',
+      // 按钮
+      btn_view_details: '查看详情 →',
+      btn_watch_video: '观看视频',
+      btn_docs: '使用说明',
+      btn_pdf: 'PDF说明',
+      btn_download: '下载PDF',
+      // 加载状态
+      loading: '加载中...',
+      load_error: '加载失败',
+      doc_error: '文档加载失败',
+      pdf_loading: '正在加载 PDF...',
+      pdf_error: 'PDF 加载失败',
+      // PDF 翻页
+      pdf_page: '页',
+      pdf_prev: '‹',
+      pdf_next: '›',
+      // 视频弹窗
+      video_title: '观看视频',
+      // 关于页
+      timeline_title: '经历',
+      // 主题名称
+      theme_indigo: '靛蓝',
+      theme_rose: '玫瑰',
+      theme_emerald: '翡翠',
+      theme_amber: '琥珀',
+      theme_ocean: '海洋',
+      theme_purple: '紫色',
+      theme_sunset: '日落',
+      theme_mint: '薄荷',
+      theme_dark: '暗黑',
+    },
+    en: {
+      // 导航
+      nav_home: 'Home',
+      nav_projects: 'Projects',
+      nav_gallery: 'Gallery',
+      nav_articles: 'Articles',
+      nav_about: 'About',
+      nav_contact: 'Contact',
+      // 主题面板
+      theme_label: 'Choose Theme',
+      // 语言按钮
+      lang_switch: '中',
+      // 徽章
+      badge_projects: '// PROJECTS',
+      badge_gallery: '// GALLERY',
+      badge_articles: '// ARTICLES',
+      badge_about: '// ABOUT ME',
+      badge_contact: '// CONTACT',
+      // 标题
+      title_projects: 'Projects',
+      title_gallery: 'Gallery',
+      title_articles: 'Articles',
+      title_about: 'About Me',
+      title_contact: 'Contact',
+      // 描述
+      desc_projects: 'Carefully crafted CAD automation tools for maximum efficiency',
+      desc_gallery: 'Documenting the development journey, capturing every inspiration',
+      desc_articles: 'Sharing CAD secondary development experience and practical tips',
+      // 空状态
+      empty_projects: 'No projects yet. Add some in the admin panel 🚀',
+      empty_gallery: 'No images yet. Upload your first photo 📷',
+      empty_articles: 'No articles yet. Write your first post ✏️',
+      empty_contact: 'No contact information',
+      empty_gal_cat: 'No images in this category',
+      // 按钮
+      btn_view_details: 'View Details →',
+      btn_watch_video: 'Watch Video',
+      btn_docs: 'Documentation',
+      btn_pdf: 'PDF Guide',
+      btn_download: 'Download PDF',
+      // 加载状态
+      loading: 'Loading...',
+      load_error: 'Load failed',
+      doc_error: 'Failed to load document',
+      pdf_loading: 'Loading PDF...',
+      pdf_error: 'PDF load failed',
+      // PDF 翻页
+      pdf_page: '',
+      pdf_prev: '‹',
+      pdf_next: '›',
+      // 视频弹窗
+      video_title: 'Watch Video',
+      // 关于页
+      timeline_title: 'Experience',
+      // 主题名称
+      theme_indigo: 'Indigo',
+      theme_rose: 'Rose',
+      theme_emerald: 'Emerald',
+      theme_amber: 'Amber',
+      theme_ocean: 'Ocean',
+      theme_purple: 'Purple',
+      theme_sunset: 'Sunset',
+      theme_mint: 'Mint',
+      theme_dark: 'Dark',
+    }
+  };
+
+  var currentLang = localStorage.getItem('blog-lang') || 'zh';
+
+  function t(key) {
+    return I18N[currentLang][key] || key;
+  }
+
+  function applyLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('blog-lang', lang);
+
+    // 更新语言切换按钮
+    var langBtn = document.getElementById('lang-btn');
+    if (langBtn) langBtn.textContent = t('lang_switch');
+
+    // 更新导航链接文本
+    var navLinks = document.querySelectorAll('.nav-links a');
+    var navMap = ['nav_home', 'nav_projects', 'nav_gallery', 'nav_articles', 'nav_about', 'nav_contact'];
+    navLinks.forEach(function(a, i) {
+      if (navMap[i]) a.textContent = t(navMap[i]);
+    });
+
+    // 更新主题面板标签
+    var tpLabel = document.getElementById('tp-label');
+    if (tpLabel) tpLabel.textContent = t('theme_label');
+
+    // 更新主题选项 title
+    var themeMap = {
+      'indigo': 'theme_indigo', 'rose': 'theme_rose', 'emerald': 'theme_emerald',
+      'amber': 'theme_amber', 'ocean': 'theme_ocean', 'purple': 'theme_purple',
+      'sunset': 'theme_sunset', 'mint': 'theme_mint', 'dark': 'theme_dark'
+    };
+    document.querySelectorAll('.tp-opt').forEach(function(o) {
+      var tKey = themeMap[o.getAttribute('data-t')];
+      if (tKey) o.title = t(tKey);
+    });
+
+    // 更新 data-i18n 元素
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+      var key = el.getAttribute('data-i18n');
+      if (I18N[lang][key]) el.textContent = I18N[lang][key];
+    });
+
+    // 更新 PDF 弹窗按钮
+    var pdfPrev = document.querySelector('#pdf-prev [data-i18n]');
+    if (pdfPrev) pdfPrev.textContent = t('pdf_prev');
+    var pdfNext = document.querySelector('#pdf-next [data-i18n]');
+    if (pdfNext) pdfNext.textContent = t('pdf_next');
+    var pdfDl = document.getElementById('pdf-download');
+    if (pdfDl) pdfDl.textContent = t('btn_download');
+
+    // 更新页码显示
+    updatePdfPageInfo();
+  }
+
+  function updatePdfPageInfo() {
+    var pageInfo = document.getElementById('pdf-page-info');
+    if (pageInfo && window._pdfPage && window._pdfTotal) {
+      if (currentLang === 'en') {
+        pageInfo.textContent = window._pdfPage + ' / ' + window._pdfTotal;
+      } else {
+        pageInfo.textContent = '第 ' + window._pdfPage + ' / ' + window._pdfTotal + ' 页';
+      }
+    }
+  }
+
+  // ===========================
   // IntersectionObserver 淡入
   // ===========================
   var io = new IntersectionObserver(function (entries) {
@@ -42,7 +243,7 @@
   // ===========================
   // 主题切换
   // ===========================
-  var THEMES = ['indigo', 'rose', 'emerald', 'amber', 'ocean', 'dark'];
+  var THEMES = ['indigo', 'rose', 'emerald', 'amber', 'ocean', 'purple', 'sunset', 'mint', 'dark'];
   var curTheme = localStorage.getItem('blog-theme') || 'indigo';
 
   function applyTheme(t) {
@@ -56,6 +257,19 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     applyTheme(curTheme);
+    applyLanguage(currentLang);
+
+    // 语言切换
+    var langBtn = document.getElementById('lang-btn');
+    if (langBtn) {
+      langBtn.addEventListener('click', function () {
+        var newLang = currentLang === 'zh' ? 'en' : 'zh';
+        applyLanguage(newLang);
+        // 重新渲染动态内容
+        if (_galData.length > 0) renderGalGrid(document.querySelector('.filter-btn.active')?.getAttribute('data-cat') || '全部');
+        renderContact(window._contactData || {});
+      });
+    }
 
     // 主题面板切换
     var btn = document.getElementById('theme-btn');
@@ -232,7 +446,7 @@
     var el = document.getElementById('projects-grid');
     if (!el) return;
     if (!Array.isArray(list) || list.length === 0) {
-      el.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:3rem;">暂无作品，快去后台添加吧 🚀</p>';
+      el.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:3rem;">' + t('empty_projects') + '</p>';
       return;
     }
     list.sort(function (a, b) { return (a.order || 99) - (b.order || 99); });
@@ -264,21 +478,21 @@
             src = '//player.bilibili.com/player.html?aid=' + avMatch[1] + '&high_quality=1&autoplay=0';
           }
           if (src) {
-            videoBtn = '<a onclick="openVideoPlayer(\'' + src + '\',\'' + esc(p.title) + '\')" class="proj-video-link" style="cursor:pointer"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> 观看视频</a>';
+            videoBtn = '<a onclick="openVideoPlayer(\'' + src + '\',\'' + esc(p.title) + '\')" class="proj-video-link" style="cursor:pointer"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> ' + t('btn_watch_video') + '</a>';
           } else {
-            videoBtn = '<a href="' + esc(vidUrl) + '" target="_blank" class="proj-video-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> 观看视频</a>';
+            videoBtn = '<a href="' + esc(vidUrl) + '" target="_blank" class="proj-video-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> ' + t('btn_watch_video') + '</a>';
           }
         }
       }
       // 使用说明按钮
       var docBtn = '';
       if (p.doc_url) {
-        docBtn = '<a onclick="openProjectDoc(\'' + esc(p.doc_url) + '\',\'' + esc(p.title) + '\')" class="proj-doc-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6zm2-7h8v1.5H8V13zm0 3h5v1.5H8V16z"/></svg> 使用说明</a>';
+        docBtn = '<a onclick="openProjectDoc(\'' + esc(p.doc_url) + '\',\'' + esc(p.title) + '\')" class="proj-doc-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6zm2-7h8v1.5H8V13zm0 3h5v1.5H8V16z"/></svg> ' + t('btn_docs') + '</a>';
       }
       // PDF 使用说明按钮
       var pdfBtn = '';
       if (p.pdf_url) {
-        pdfBtn = '<a onclick="openProjectPDF(\'' + esc(p.pdf_url) + '\',\'' + esc(p.title) + '\')" class="proj-pdf-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg> PDF说明</a>';
+        pdfBtn = '<a onclick="openProjectPDF(\'' + esc(p.pdf_url) + '\',\'' + esc(p.title) + '\')" class="proj-pdf-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg> ' + t('btn_pdf') + '</a>';
       }
       // 图标：有图片时铺满顶部，否则 emoji 居中显示
       var iconHtml = '';
@@ -296,7 +510,7 @@
           '<h3>' + esc(p.title) + '</h3>' +
           '<p>' + esc(p.description || '') + '</p>' +
           '<div class="proj-actions">' +
-            (href ? '<a' + href + ' class="proj-link">查看详情 →</a>' : '') +
+            (href ? '<a' + href + ' class="proj-link">' + t('btn_view_details') + '</a>' : '') +
             videoBtn +
             docBtn +
             pdfBtn +
@@ -320,7 +534,7 @@
     modal.innerHTML =
       '<div class="video-modal-backdrop"></div>' +
       '<div class="video-modal-box">' +
-        '<div class="video-modal-header"><span>' + (title || '观看视频') + '</span><button class="video-modal-close" onclick="closeVideoPlayer()">&times;</button></div>' +
+        '<div class="video-modal-header"><span>' + (title || t('video_title')) + '</span><button class="video-modal-close" onclick="closeVideoPlayer()">&times;</button></div>' +
         '<div class="video-modal-body"><iframe src="' + src + '" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe></div>' +
       '</div>';
     document.body.appendChild(modal);
@@ -356,8 +570,8 @@
       '<div class="modal-box" style="max-width:860px">' +
         '<button class="modal-close" onclick="closeDocModal()">&times;</button>' +
         '<div class="modal-body">' +
-          '<h2 style="margin-bottom:1rem;font-size:1.4rem">' + esc(title) + ' - 使用说明</h2>' +
-          '<div id="doc-modal-loading" style="text-align:center;padding:3rem;color:var(--text2)">加载中...</div>' +
+          '<h2 style="margin-bottom:1rem;font-size:1.4rem">' + esc(title) + ' - ' + t('btn_docs') + '</h2>' +
+          '<div id="doc-modal-loading" style="text-align:center;padding:3rem;color:var(--text2)">' + t('loading') + '</div>' +
           '<div id="doc-modal-content" class="md-content" style="display:none"></div>' +
         '</div>' +
       '</div>';
@@ -372,7 +586,7 @@
         var loading = document.getElementById('doc-modal-loading');
         var content = document.getElementById('doc-modal-content');
         if (!text) {
-          if (loading) loading.textContent = '文档加载失败';
+          if (loading) loading.textContent = t('doc_error');
           return;
         }
         content.innerHTML = md2html(text);
@@ -381,7 +595,7 @@
       })
       .catch(function () {
         var loading = document.getElementById('doc-modal-loading');
-        if (loading) loading.textContent = '文档加载失败';
+        if (loading) loading.textContent = t('doc_error');
       });
   };
   window.closeDocModal = function () {
@@ -412,8 +626,14 @@
 
     if (titleEl) titleEl.textContent = title;
     if (canvas) canvas.style.display = 'none';
-    if (loadingEl) { loadingEl.textContent = '正在加载 PDF...'; loadingEl.style.display = 'block'; }
-    if (pageInfo) pageInfo.textContent = '0 / 0';
+    if (loadingEl) { loadingEl.textContent = t('pdf_loading'); loadingEl.style.display = 'block'; }
+    if (pageInfo) {
+      if (currentLang === 'en') {
+        pageInfo.textContent = '0 / 0';
+      } else {
+        pageInfo.textContent = '0 / 0 页';
+      }
+    }
     if (prevBtn) prevBtn.disabled = true;
     if (nextBtn) nextBtn.disabled = true;
 
@@ -466,7 +686,7 @@
       renderPDF(pdfUrl);
     };
     script.onerror = function () {
-      showPDFError('PDF.js 加载失败，请确保 pdf.min.js 在网站根目录');
+      showPDFError(t('pdf_error'));
     };
     document.head.appendChild(script);
   }
@@ -483,7 +703,7 @@
     var canvas = document.getElementById('pdf-canvas');
 
     if (typeof pdfjsLib === 'undefined') {
-      showPDFError('PDF.js 未加载，请刷新页面重试');
+      showPDFError(t('pdf_error'));
       return;
     }
 
@@ -501,7 +721,7 @@
 
     // 显示加载中
     if (loadingEl) {
-      loadingEl.textContent = '正在加载 PDF...';
+      loadingEl.textContent = t('pdf_loading');
       loadingEl.style.cssText = 'color:var(--muted);font-size:.92rem;text-align:center;padding:3rem';
       loadingEl.style.display = 'block';
     }
@@ -533,7 +753,7 @@
       })
       .catch(function (err) {
         console.error('[PDF] 加载失败:', err);
-        showPDFError('PDF 加载失败: ' + (err.message || err.name || '未知错误'));
+        showPDFError(t('pdf_error') + ': ' + (err.message || err.name || '未知错误'));
       });
   }
 
@@ -574,7 +794,15 @@
       page.render(renderContext);
 
       // 更新页码显示
-    if (pageInfo) pageInfo.textContent = '第 ' + pageNum + ' / ' + _pdfTotal + ' 页';
+      window._pdfPage = pageNum;
+      window._pdfTotal = _pdfTotal;
+      if (pageInfo) {
+        if (currentLang === 'en') {
+          pageInfo.textContent = pageNum + ' / ' + _pdfTotal;
+        } else {
+          pageInfo.textContent = '第 ' + pageNum + ' / ' + _pdfTotal + ' 页';
+        }
+      }
       if (prevBtn) prevBtn.disabled = pageNum <= 1;
       if (nextBtn) nextBtn.disabled = pageNum >= _pdfTotal;
     });
@@ -609,12 +837,12 @@
 
     if (_galData.length === 0) {
       if (filtersEl) filtersEl.innerHTML = '';
-      gridEl.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:3rem;">暂无图片，去后台上传第一张吧 📷</p>';
+      gridEl.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:3rem;">' + t('empty_gallery') + '</p>';
       return;
     }
 
     // 分类
-    var cats = ['全部'];
+    var cats = [currentLang === 'zh' ? '全部' : 'All'];
     _galData.forEach(function (g) {
       if (g.category && cats.indexOf(g.category) < 0) cats.push(g.category);
     });
@@ -630,15 +858,16 @@
         renderGalGrid(btn.getAttribute('data-cat'));
       });
     }
-    renderGalGrid('全部');
+    renderGalGrid(cats[0]);
   }
 
   function renderGalGrid(cat) {
     var gridEl = document.getElementById('gallery-grid');
     if (!gridEl) return;
-    var filtered = cat === '全部' ? _galData : _galData.filter(function (g) { return g.category === cat; });
+    var allLabel = currentLang === 'zh' ? '全部' : 'All';
+    var filtered = cat === allLabel ? _galData : _galData.filter(function (g) { return g.category === cat; });
     if (filtered.length === 0) {
-      gridEl.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:2rem;">该分类暂无图片</p>';
+      gridEl.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:2rem;">' + t('empty_gal_cat') + '</p>';
       return;
     }
     gridEl.innerHTML = filtered.map(function (g) {
@@ -670,7 +899,7 @@
     if (!el) return;
     var published = _articles.filter(function (a) { return a.published !== false; });
     if (published.length === 0) {
-      el.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:3rem;">暂无文章，去后台写第一篇吧 ✏️</p>';
+      el.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:3rem;">' + t('empty_articles') + '</p>';
       return;
     }
     published.sort(function (a, b) { return new Date(b.updated_at || 0) - new Date(a.updated_at || 0); });
@@ -730,7 +959,7 @@
     var tlEl = document.getElementById('timeline');
     if (tlEl && about.timeline && about.timeline.length > 0) {
       tlEl.style.display = '';
-      tlEl.innerHTML = '<h3 style="text-align:center;margin-bottom:2rem;font-size:1.4rem;">经历</h3>' +
+      tlEl.innerHTML = '<h3 style="text-align:center;margin-bottom:2rem;font-size:1.4rem;">' + t('timeline_title') + '</h3>' +
         about.timeline.map(function (t) {
           return '<div class="tl-item fade-in"><div class="tl-dot"></div>' +
             '<div class="tl-body"><div class="tl-year">' + esc(t.year || '') + '</div>' +
@@ -745,11 +974,12 @@
   // 联系方式 (contact.json → cards)
   // ===========================
   function renderContact(contact) {
+    window._contactData = contact; // 保存用于语言切换重渲染
     var el = document.getElementById('contact-grid');
     if (!el) return;
     var cards = (contact.cards || []).filter(function (c) { return c.title; });
     if (cards.length === 0) {
-      el.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:3rem;">暂无联系方式</p>';
+      el.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:3rem;">' + t('empty_contact') + '</p>';
       return;
     }
     el.innerHTML = cards.map(function (c) {
@@ -774,13 +1004,13 @@
     var tags = (a.tags || []).map(function (t) { return '<span style="background:var(--soft);color:var(--accent);padding:2px 8px;border-radius:6px;font-size:.78rem;">' + esc(t) + '</span>'; }).join(' ');
     // 优先从 doc_url 加载文档内容
     if (a.doc_url) {
-      content.innerHTML = '<div style="color:var(--muted);font-size:.88rem;">加载中...</div>';
+      content.innerHTML = '<div style="color:var(--muted);font-size:.88rem;">' + t('loading') + '</div>';
       fetchDocContent(a.doc_url, function(docContent) {
         content.innerHTML =
           '<p style="color:var(--muted);font-size:.88rem;">' + date + ' · ' + esc(a.category || '其他') + '</p>' +
           '<h1 style="margin:.6rem 0 1rem;font-size:1.8rem;line-height:1.3">' + esc(a.title) + '</h1>' +
           (tags ? '<div style="margin-bottom:1.5rem;display:flex;gap:.4rem;flex-wrap:wrap;">' + tags + '</div>' : '') +
-          (docContent ? md2html(docContent) : '<p style="color:var(--err);">文档加载失败</p>');
+          (docContent ? md2html(docContent) : '<p style="color:var(--err);">' + t('doc_error') + '</p>');
       });
     } else {
       content.innerHTML =
