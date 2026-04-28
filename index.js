@@ -13,6 +13,16 @@
     return p || '';
   })();
   var DATA = BASE + '/data';
+  // CDN 前缀：GitHub Pages 环境直接用 jsDelivr CDN 读取图片（最快）
+  var CDN = 'https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main';
+  // 判断是否为本地环境（localhost）
+  var IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  // 获取图片完整 URL：本地用相对路径，线上用 CDN
+  function getImgUrl(path) {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    return IS_LOCAL ? (BASE ? BASE + '/' + path : path) : (CDN + '/' + path);
+  }
 
   // ===========================
   // IntersectionObserver 淡入
@@ -631,7 +641,7 @@
       return;
     }
     gridEl.innerHTML = filtered.map(function (g) {
-      var imgSrc = g.image_url ? (g.image_url.startsWith('http') ? g.image_url : (BASE ? BASE + '/' + g.image_url : g.image_url)) : '';
+      var imgSrc = getImgUrl(g.image_url);
       var img = imgSrc ? '<img src="' + imgSrc + '" alt="' + esc(g.title || '') + '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">' : '';
       var ph = !imgSrc ? '<div class="gal-ph">🖼️</div>' : '<div class="gal-ph" style="display:none">🖼️</div>';
       return '<div class="gal-item fade-in" data-id="' + g.id + '">' +
@@ -805,7 +815,7 @@
     var img = document.getElementById('lb-img');
     var cap = document.getElementById('lb-caption');
     if (!lb || !img) return;
-    img.src = item.image_url.startsWith('http') ? item.image_url : (BASE ? BASE + '/' + item.image_url : item.image_url);
+    img.src = getImgUrl(item.image_url);
     img.alt = item.title || '';
     if (cap) cap.innerHTML = '<strong>' + esc(item.title || '') + '</strong>' + (item.description ? '<br>' + esc(item.description) : '');
     lb.classList.add('show');
