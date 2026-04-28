@@ -1,0 +1,44 @@
+[
+  {
+    "id": "proj_1",
+    "title": "散线转文字",
+    "description": "一键将CAD中的散线文字转换为可编辑的文字，省时省力。",
+    "emoji": "📐",
+    "tags": [
+      "PaddleOCR",
+      "深度学习",
+      "CAD"
+    ],
+    "gradient": "linear-gradient(135deg, #6366f1, #8b5cf6)",
+    "link": "#",
+    "order": 1
+  },
+  {
+    "id": "proj_2",
+    "title": "批量打印插件",
+    "description": "支持批量打印DWG文件，自定义布局和纸张大小。",
+    "emoji": "🖨️",
+    "tags": [
+      "AutoCAD",
+      "打印",
+      "批处理"
+    ],
+    "gradient": "linear-gradient(135deg, #10b981, #14b8a6)",
+    "link": "#",
+    "order": 2
+  },
+  {
+    "id": "proj_3",
+    "title": "图块库管理",
+    "description": "快速查找、插入和管理CAD图块，提高绘图效率。",
+    "emoji": "📦",
+    "tags": [
+      "图块",
+      "管理",
+      "效率"
+    ],
+    "gradient": "linear-gradient(135deg, #f59e0b, #d97706)",
+    "link": "#",
+    "order": 3
+  }
+]
