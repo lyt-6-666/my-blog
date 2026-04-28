@@ -6,7 +6,11 @@
   <title id="page-title">我的博客</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <!-- 预加载 PDF.js 库 -->
+  <link rel="preload" href="pdf.min.js" as="script">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" as="script">
   <style>
   /* ===== CSS 变量：默认主题 ===== */
   :root,[data-theme="indigo"]{
@@ -478,33 +482,17 @@
     .gallery-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
   }
 
-  /* ===== 图片骨架屏动画 ===== */
-  .img-skeleton{
-    background:linear-gradient(90deg,var(--bg2) 25%,var(--hover) 50%,var(--bg2) 75%);
-    background-size:200% 100%;
-    animation:imgShimmer 1.5s infinite;
-  }
-  @keyframes imgShimmer{
-    0%{background-position:-200% 0}
-    100%{background-position:200% 0}
-  }
-  /* 图片加载完成后的淡入效果 */
-  .img-loaded{
-    animation:fadeInImg .4s ease forwards;
-  }
-  @keyframes fadeInImg{
-    from{opacity:0;transform:scale(1.02)}
-    to{opacity:1;transform:scale(1)}
-  }
+  /* ===== 图片秒加载优化 ===== */
+  /* 图片立即显示，无延迟动画 */
+  .img-loaded{opacity:1!important}
+  /* 移除文章和作品卡片的延迟效果 */
+  .art-thumb img{opacity:1!important}
+  .proj-thumb img{opacity:1!important}
   /* 强制隐藏破裂图片图标 */
   .gal-item img[src=""],
   .gal-item img:not([src]){display:none}
   .gal-item .img-skeleton{position:absolute;inset:0}
   .gal-item .img-loaded{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  .art-thumb img{opacity:0;transition:opacity .4s}
-  .art-thumb img.loaded{opacity:1}
-  .proj-thumb img{opacity:0;transition:opacity .4s}
-  .proj-thumb img.loaded{opacity:1}
 
   /* ===== PDF 弹窗 ===== */
   .proj-pdf-link{display:inline-flex;align-items:center;gap:.35rem;color:#e11d48;font-size:.85rem;font-weight:500;padding:.35rem .8rem;border-radius:50px;background:rgba(225,29,72,.08);border:1px solid rgba(225,29,72,.2);cursor:pointer;transition:all .3s;text-decoration:none}
