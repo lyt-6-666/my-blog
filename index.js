@@ -431,16 +431,20 @@
   };
 
   // 动态加载 PDF.js
-  function loadPDFJS(pdfjsSrc, pdfUrl) {
+  function loadPDFJS(pdfUrl) {
     // 如果已加载，直接渲染
     if (typeof pdfjsLib !== 'undefined') {
+      // 设置 workerSrc，禁用 worker 避免跨域问题
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
       renderPDF(pdfUrl);
       return;
     }
     var script = document.createElement('script');
-    script.src = 'pdf.min.js';
+    script.src = (BASE ? BASE + '/' : '') + 'pdf.min.js';
     script.onload = function () {
       console.log('[PDF] pdf.min.js 加载成功');
+      // 禁用 Web Worker，直接在主线程解析（避免 GitHub Pages 跨域 worker 问题）
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
       renderPDF(pdfUrl);
     };
     script.onerror = function () {
