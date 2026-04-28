@@ -589,38 +589,18 @@
   }
 
   // ===========================
-  // Markdown → HTML（简版）
+  // Markdown → HTML（使用 marked.js）
   // ===========================
   function md2html(text) {
     if (!text) return '';
-    // 代码块
-    text = text.replace(/```(\w*)\n([\s\S]*?)```/g, function (_, lang, code) {
-      return '<pre><code>' + escHtml(code.trim()) + '</code></pre>';
-    });
-    // 行内转义
-    text = text
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-      .replace(/^\> (.+)$/gm, '<blockquote>$1</blockquote>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/`(.+?)`/g, '<code>$1</code>')
-      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-      .replace(/^- (.+)$/gm, '<li>$1</li>');
-    // 列表包装
-    text = text.replace(/(<li>[\s\S]*?<\/li>)/g, function (m) { return '<ul>' + m + '</ul>'; });
-    // 段落
-    var lines = text.split('\n');
-    var out = '';
-    lines.forEach(function (line) {
-      line = line.trim();
-      if (!line) return;
-      if (/^<(h[1-6]|ul|ol|li|pre|blockquote|img)/.test(line)) out += line;
-      else out += '<p>' + line + '</p>';
-    });
-    return out;
+    if (typeof marked === 'undefined') {
+      console.error('marked.js 未加载');
+      return '<pre>' + esc(text) + '</pre>';
+    }
+    var html = marked.parse(text, { breaks: true, gfm: true });
+    // 所有链接新窗口打开
+    html = html.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
+    return html;
   }
 
   // ===========================
@@ -630,6 +610,4 @@
     if (s === null || s === undefined) return '';
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
-  function escHtml(s) { return esc(s); }
-
 })();
