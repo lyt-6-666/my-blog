@@ -483,7 +483,18 @@
   }
 
   /* ===== 图片秒加载优化 ===== */
-  /* 图片立即显示，无延迟动画 */
+  /* 骨架屏闪烁动画 */
+  @keyframes shimmer {
+    0%{background-position:-200% 0}
+    100%{background-position:200% 0}
+  }
+  @keyframes imgFadeIn {
+    from{opacity:0;transform:scale(0.98)}
+    to{opacity:1;transform:scale(1)}
+  }
+  /* 图片加载完成淡入效果 */
+  .img-fade-in{animation:imgFadeIn .4s ease-out}
+  /* 图片加载完成 */
   .img-loaded{opacity:1!important}
   /* 移除文章和作品卡片的延迟效果 */
   .art-thumb img{opacity:1!important}
@@ -491,7 +502,7 @@
   /* 强制隐藏破裂图片图标 */
   .gal-item img[src=""],
   .gal-item img:not([src]){display:none}
-  .gal-item .img-skeleton{position:absolute;inset:0}
+  .gal-item .img-skeleton{position:absolute;inset:0;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s ease-in-out infinite}
   .gal-item .img-loaded{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 
   /* ===== PDF 弹窗 ===== */
