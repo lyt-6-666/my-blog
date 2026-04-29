@@ -495,10 +495,16 @@
   }
 
   /* ===== 图片秒加载优化 ===== */
-  /* 骨架屏闪烁动画 */
+  /* 骨架屏闪烁动画（更强的视觉效果） */
   @keyframes shimmer {
     0%{background-position:-200% 0}
     100%{background-position:200% 0}
+  }
+  /* 首屏图片骨架屏占位（浅灰背景 + 闪烁动画） */
+  .img-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
   }
   @keyframes imgFadeIn {
     from{opacity:0;transform:scale(0.98)}
@@ -508,14 +514,49 @@
   .img-fade-in{animation:imgFadeIn .4s ease-out}
   /* 图片加载完成 */
   .img-loaded{opacity:1!important}
-  /* 移除文章和作品卡片的延迟效果 */
-  .art-thumb img{opacity:1!important}
-  .proj-thumb img{opacity:1!important}
+  /* 首屏图片预加载占位（更明显的骨架屏） */
+  .proj-thumb .img-skeleton,
+  .art-thumb .img-skeleton {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    z-index: 1;
+  }
+  /* 首屏图片默认显示骨架屏，onload 后移除 */
+  .proj-thumb img,
+  .art-thumb img {
+    position: relative;
+    z-index: 2;
+    transition: opacity 0.4s ease;
+  }
+  /* 相册骨架屏 */
+  .gal-item .img-skeleton {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    z-index: 1;
+  }
+  .gal-item .img-loaded {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* 移除文章和作品卡片的延迟效果，确保首屏快速显示 */
+  .art-thumb img,
+  .proj-thumb img {
+    opacity: 0;
+  }
   /* 强制隐藏破裂图片图标 */
   .gal-item img[src=""],
   .gal-item img:not([src]){display:none}
-  .gal-item .img-skeleton{position:absolute;inset:0;background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s ease-in-out infinite}
-  .gal-item .img-loaded{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 
   /* ===== PDF 弹窗 ===== */
   .proj-pdf-link{display:inline-flex;align-items:center;gap:.35rem;color:#e11d48;font-size:.85rem;font-weight:500;padding:.35rem .8rem;border-radius:50px;background:rgba(225,29,72,.08);border:1px solid rgba(225,29,72,.2);cursor:pointer;transition:all .3s;text-decoration:none}
@@ -549,6 +590,12 @@
   <div class="bg-orb"></div>
   <div id="scroll-bar"></div>
   <button id="back-top" title="回到顶部">↑</button>
+
+  <!-- 首屏图片加载指示器 -->
+  <div id="img-loading-indicator" style="position:fixed;top:70px;right:20px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--text2);z-index:1000;display:none;align-items:center;gap:6px;box-shadow:var(--sh)">
+    <span style="display:inline-block;width:10px;height:10px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite"></span>
+    <span id="img-loading-text">加载图片...</span>
+  </div>
 
   <!-- 导航 -->
   <nav id="navbar">
