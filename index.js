@@ -236,6 +236,7 @@
       nav_articles: '文章',
       nav_about: '关于',
       nav_contact: '联系',
+      nav_software: '软件下载',
       // 主题面板
       theme_label: '选择主题',
       // 语言按钮
@@ -298,6 +299,7 @@
       nav_articles: 'Articles',
       nav_about: 'About',
       nav_contact: 'Contact',
+      nav_software: 'Download',
       // 主题面板
       theme_label: 'Choose Theme',
       // 语言按钮
@@ -370,7 +372,7 @@
 
     // 更新导航链接文本
     var navLinks = document.querySelectorAll('.nav-links a');
-    var navMap = ['nav_home', 'nav_projects', 'nav_gallery', 'nav_articles', 'nav_about', 'nav_contact'];
+    var navMap = ['nav_home', 'nav_projects', 'nav_software', 'nav_gallery', 'nav_articles', 'nav_about', 'nav_contact'];
     navLinks.forEach(function(a, i) {
       if (navMap[i]) a.textContent = t(navMap[i]);
     });
