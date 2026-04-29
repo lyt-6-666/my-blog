@@ -436,6 +436,18 @@
   .contact-card h4{font-size:.95rem;margin-bottom:.2rem}
   .contact-card p{color:var(--text2);font-size:.88rem}
 
+  /* ===== 扫码下载区域 ===== */
+  .software-section{padding:60px 0;background:var(--bg2);transition:background .4s}
+  .software-content{display:flex;justify-content:center;margin-top:30px}
+  .qrcode-wrap{background:#fff;border-radius:16px;padding:24px;box-shadow:var(--sh);
+    transition:all .3s;cursor:pointer}
+  .qrcode-wrap:hover{transform:translateY(-5px);box-shadow:var(--sh-lg)}
+  .qrcode-wrap img{max-width:200px;max-height:200px;border-radius:8px}
+  .qrcode-tip{text-align:center;margin-top:12px;font-size:13px;color:var(--text2)}
+  @media(max-width:600px){
+    .qrcode-wrap{padding:16px}
+    .qrcode-wrap img{max-width:160px;max-height:160px}
+  }
   /* ===== Footer ===== */
   footer{background:var(--bg2);border-top:1px solid var(--border);padding:2rem;text-align:center;color:var(--muted);font-size:.85rem}
 
@@ -548,6 +560,7 @@
         <li><a href="#gallery" data-i18n="nav_gallery">相册</a></li>
         <li><a href="#articles" data-i18n="nav_articles">文章</a></li>
         <li><a href="#about" data-i18n="nav_about">关于</a></li>
+        <li><a href="#software" id="nav-software" class="hidden" data-i18n="nav_software">下载</a></li>
         <li><a href="#contact" data-i18n="nav_contact">联系</a></li>
       </ul>
       <div class="nav-right">
@@ -575,6 +588,22 @@
         <p class="hero-desc" id="hero-desc"></p>
         <div class="hero-btns" id="hero-btns"></div>
         <div class="hero-stats" id="hero-stats" style="display:none"></div>
+      </div>
+    </section>
+
+    <!-- 扫码下载 -->
+    <section id="software" class="section software-section hidden">
+      <div class="container fade-in">
+        <div class="sec-header">
+          <div class="sec-badge" id="software-badge">// DOWNLOAD</div>
+          <h2 class="sec-title" id="software-title">扫码下载</h2>
+          <p class="sec-desc" id="software-desc">长按识别二维码，加入交流群获取最新版本</p>
+        </div>
+        <div class="software-content">
+          <div class="qrcode-wrap" id="software-qrcode-wrap">
+            <img id="software-qrcode" src="" alt="扫码下载">
+          </div>
+        </div>
       </div>
     </section>
 
