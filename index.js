@@ -274,6 +274,7 @@
       badge_articles: '// 文章',
       badge_about: '// 关于我',
       badge_contact: '// 联系',
+      badge_software: '// 软件下载',
       // 标题
       title_projects: '作品展示',
       title_gallery: '相册',
@@ -330,6 +331,7 @@
       badge_articles: '// ARTICLES',
       badge_about: '// ABOUT ME',
       badge_contact: '// CONTACT',
+      badge_software: '// DOWNLOAD',
       // 标题
       title_projects: 'Projects',
       title_gallery: 'Gallery',
@@ -799,15 +801,30 @@
       badgeEl.style.display = '';
     }
 
-    // 标题：headline_1 + highlight(headline_2) + headline_3 + headline_4
+    // 标题：两行，每行支持一个高亮词；兼容旧字段 headline_1/2/3/4
     var titleEl = document.getElementById('hero-title');
     if (titleEl) {
-      var parts = [];
-      if (hero.headline_1) parts.push(hero.headline_1);
-      if (hero.headline_2) parts.push('<span class="hl">' + esc(hero.headline_2) + '</span>');
-      if (hero.headline_3) parts.push(hero.headline_3);
-      if (hero.headline_4) parts.push(hero.headline_4);
-      titleEl.innerHTML = parts.join(' ');
+      function buildLine(lineText, hlWord) {
+        if (!lineText) return '';
+        if (hlWord && lineText.indexOf(hlWord) >= 0) {
+          return lineText.replace(hlWord, '<span class="hl">' + esc(hlWord) + '</span>');
+        }
+        return esc(lineText);
+      }
+      var line1Html = '', line2Html = '';
+      if (hero.line_1 !== undefined) {
+        // 新格式
+        line1Html = buildLine(hero.line_1, hero.hl_1);
+        line2Html = buildLine(hero.line_2, hero.hl_2);
+      } else {
+        // 旧格式兼容
+        var oldLine1 = [hero.headline_1, hero.headline_2 ? '<span class="hl">' + esc(hero.headline_2) + '</span>' : ''].filter(Boolean).join(' ');
+        var oldLine2 = [hero.headline_3, hero.headline_4 ? '<span class="hl">' + esc(hero.headline_4) + '</span>' : ''].filter(Boolean).join(' ');
+        line1Html = oldLine1;
+        line2Html = oldLine2;
+      }
+      var lines = [line1Html, line2Html].filter(Boolean);
+      titleEl.innerHTML = lines.join('<br>');
     }
 
     // 描述
@@ -1215,7 +1232,12 @@
       } else {
         avatarContent = (about.avatar || '👤');
       }
-      var avatarHtml = '<div class="about-ava-wrap fade-in"><div class="about-ava">' + avatarContent + '</div></div>';
+      // 支持自定义背景色 icon_bg
+      var avaBg = '';
+      if (!about.avatar_url && about.icon_bg) {
+        avaBg = 'style="background:' + about.icon_bg + '"';
+      }
+      var avatarHtml = '<div class="about-ava-wrap fade-in"><div class="about-ava" ' + avaBg + '>' + avatarContent + '</div></div>';
       var textHtml = '<div class="about-text fade-in">';
       if (about.subtitle) textHtml += '<p style="color:var(--accent);font-size:1.05rem;margin-bottom:1rem;">' + esc(about.subtitle) + '</p>';
       if (about.paragraphs && about.paragraphs.length > 0) {
