@@ -585,6 +585,14 @@
     }).catch(function (err) {
       console.error('[博客] 数据加载失败:', err);
     });
+
+    // 单独加载分类数据
+    fetch(DATA + '/categories.json')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; })
+      .then(function (cats) {
+        if (cats) _categories = cats;
+      });
   }
 
   // ===========================
@@ -1078,6 +1086,24 @@
   // 相册 (gallery.json → array)
   // ===========================
   var _galData = [];
+  var _categories = { article_categories: [], gallery_categories: [] };
+
+  // 获取分类翻译
+  function getCatTranslation(category, type) {
+    if (!category) return category;
+    var cats = type === 'gallery' ? _categories.gallery_categories : _categories.article_categories;
+    for (var i = 0; i < cats.length; i++) {
+      var cat = cats[i];
+      var name = typeof cat === 'string' ? cat : cat.zh;
+      var en = typeof cat === 'string' ? cat : (cat.en || cat.zh);
+      if (name === category) {
+        return currentLang === 'en' ? en : name;
+      }
+    }
+    // 未找到分类，返回原名
+    return category;
+  }
+
   function renderGallery(list) {
     _galData = Array.isArray(list) ? list : [];
     var filtersEl = document.getElementById('gal-filters');
@@ -1095,7 +1121,7 @@
     var catMap = {}; // 保存原始分类 -> 翻译后分类
     _galData.forEach(function (g) {
       if (g.category && cats.indexOf(g.category) < 0) {
-        var translatedCat = t('cat_' + g.category) || g.category;
+        var translatedCat = getCatTranslation(g.category, 'gallery');
         catMap[g.category] = translatedCat;
         cats.push(g.category);
       }
@@ -1200,7 +1226,7 @@
       return '<article class="art-card fade-in" data-id="' + a.id + '">' +
         '<div class="art-thumb" style="position:relative;background:#f0f0f0">' + thumb + '</div>' +
         '<div class="art-body">' +
-          '<div class="art-meta"><span class="cat">' + esc(a.category || '其他') + '</span><span>' + date + '</span></div>' +
+          '<div class="art-meta"><span class="cat">' + esc(getCatTranslation(a.category, 'article') || '其他') + '</span><span>' + date + '</span></div>' +
           '<h3>' + esc(a.title) + '</h3>' +
           '<p>' + esc(summary) + '</p>' +
         '</div>' +
@@ -1305,14 +1331,14 @@
       content.innerHTML = '<div style="color:var(--muted);font-size:.88rem;">' + t('loading') + '</div>';
       fetchDocContent(a.doc_url, function(docContent) {
         content.innerHTML =
-          '<p style="color:var(--muted);font-size:.88rem;">' + date + ' · ' + esc(a.category || '其他') + '</p>' +
+          '<p style="color:var(--muted);font-size:.88rem;">' + date + ' · ' + esc(getCatTranslation(a.category, 'article') || '其他') + '</p>' +
           '<h1 style="margin:.6rem 0 1rem;font-size:1.8rem;line-height:1.3">' + esc(a.title) + '</h1>' +
           (tags ? '<div style="margin-bottom:1.5rem;display:flex;gap:.4rem;flex-wrap:wrap;">' + tags + '</div>' : '') +
           (docContent ? md2html(docContent) : '<p style="color:var(--err);">' + t('doc_error') + '</p>');
       });
     } else {
       content.innerHTML =
-        '<p style="color:var(--muted);font-size:.88rem;">' + date + ' · ' + esc(a.category || '其他') + '</p>' +
+        '<p style="color:var(--muted);font-size:.88rem;">' + date + ' · ' + esc(getCatTranslation(a.category, 'article') || '其他') + '</p>' +
         '<h1 style="margin:.6rem 0 1rem;font-size:1.8rem;line-height:1.3">' + esc(a.title) + '</h1>' +
         (tags ? '<div style="margin-bottom:1.5rem;display:flex;gap:.4rem;flex-wrap:wrap;">' + tags + '</div>' : '') +
         md2html(a.content || '');
