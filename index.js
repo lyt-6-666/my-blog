@@ -203,7 +203,7 @@
   };
 
   // ===========================
-  // 创建带骨架屏的图片元素（自动 WebP + CDN 备用）
+  // 创建带骨架屏的图片元素（自动 WebP + CDN 备用 + 骨架屏占位）
   // ===========================
   function createLazyImage(url, alt, className, isFirstScreen) {
     if (!url) {
@@ -218,12 +218,21 @@
     var fallbackUrls = [cdn2, cdn3, pngFallback].filter(function(u) { return u && u !== imgUrl; });
     var fallbackData = fallbackUrls.join('|');
     var fallbackAttr = fallbackData ? ' data-fallback="' + esc(fallbackData) + '"' : '';
+    // 检查图片是否已在缓存中（预加载成功）
+    var cachedImg = ImagePreloader.cache.get(imgUrl);
     if (isFirstScreen) {
-      // 首屏：立即加载（如果失败，onerror 自动降级）
-      return '<img src="' + imgUrl + '" alt="' + esc(alt) + '" class="' + (className || '') + ' img-fade-in" onload="this.classList.add(\'img-loaded\')" onerror="window._blogImgFallback(this)" ' + fallbackAttr + '><span class="img-error" style="display:none;align-items:center;justify-content:center;font-size:2rem;background:#f5f5f5;color:#999;">⚠️ 加载失败</span>';
+      // 首屏：先显示骨架屏，图片加载完成后再淡入
+      if (cachedImg) {
+        // 已预加载，直接显示（不重复加载）
+        return '<img src="' + imgUrl + '" alt="' + esc(alt) + '" class="' + (className || '') + ' img-loaded" style="opacity:1" ' + fallbackAttr + '>';
+      } else {
+        // 未预加载：显示骨架屏占位，加载完成后移除骨架屏
+        return '<span class="img-skeleton" style="position:absolute;inset:0;width:100%;height:100%;z-index:1"></span>' +
+               '<img src="' + imgUrl + '" alt="' + esc(alt) + '" class="' + (className || '') + '" style="position:relative;z-index:2;opacity:0" onload="this.style.opacity=\'1\';this.previousElementSibling.style.display=\'none\'" onerror="window._blogImgFallback(this);this.style.opacity=\'1\';this.previousElementSibling.style.display=\'none\'" ' + fallbackAttr + '>';
+      }
     } else {
       // 非首屏：data-src 由 IntersectionObserver 触发加载
-      return '<img data-src="' + imgUrl + '" alt="' + esc(alt) + '" class="img-skeleton ' + (className || '') + '" style="opacity:0" onload="this.classList.remove(\'img-skeleton\');this.classList.add(\'img-loaded\');this.style.opacity=\'1\'" onerror="window._blogImgFallback(this)" ' + fallbackAttr + '><span class="img-error" style="display:none;align-items:center;justify-content:center;font-size:2rem;background:#f5f5f5;color:#999;">⚠️ 加载失败</span>';
+      return '<img data-src="' + imgUrl + '" alt="' + esc(alt) + '" class="img-skeleton ' + (className || '') + '" style="opacity:0;position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onload="this.classList.remove(\'img-skeleton\');this.style.opacity=\'1\'" onerror="window._blogImgFallback(this)" ' + fallbackAttr + '>';
     }
   }
 
@@ -570,12 +579,44 @@
 
       // 观察所有淡入元素
       document.querySelectorAll('.fade-in').forEach(function (el) { io.observe(el); });
-
-      // 首屏图片预加载（DOM 渲染完成后补充预加载）
-      preloadCriticalImages(projects, gallery, articles, about);
     }).catch(function (err) {
       console.error('[博客] 数据加载失败:', err);
     });
+  }
+
+  // ===========================
+  // 首屏图片预加载状态管理
+  // ===========================
+  var _firstScreenLoading = {
+    indicator: null,
+    timeout: null
+  };
+
+  function showImgLoadingIndicator() {
+    var indicator = document.getElementById('img-loading-indicator');
+    if (indicator) {
+      indicator.style.display = 'flex';
+      // 8秒后自动隐藏（防止永远卡住）
+      _firstScreenLoading.timeout = setTimeout(function() {
+        hideImgLoadingIndicator();
+      }, 8000);
+    }
+  }
+
+  function updateImgLoadingIndicator(text) {
+    var textEl = document.getElementById('img-loading-text');
+    if (textEl) textEl.textContent = text;
+  }
+
+  function hideImgLoadingIndicator() {
+    var indicator = document.getElementById('img-loading-indicator');
+    if (indicator) {
+      indicator.style.display = 'none';
+    }
+    if (_firstScreenLoading.timeout) {
+      clearTimeout(_firstScreenLoading.timeout);
+      _firstScreenLoading.timeout = null;
+    }
   }
 
   // ===========================
@@ -593,20 +634,29 @@
     _preloadDone = true;
 
     var urls = [];
-    // 作品封面（全部，因为作品区通常在首屏）
-    projects.slice(0, 4).forEach(function (p) {
+    // 优先级排序：首屏最重要的图片优先
+    // 1. 头像（首屏最显眼）
+    if (about.avatar_url) urls.push(getImgUrl(about.avatar_url));
+    // 2. 作品封面（前2个，最显眼）
+    projects.slice(0, 2).forEach(function (p) {
       if (p.icon_url) urls.push(getImgUrl(p.icon_url));
     });
-    // 相册（前6个）
-    gallery.slice(0, 6).forEach(function (g) {
-      if (g.image_url) urls.push(getImgUrl(g.image_url));
-    });
-    // 文章封面（前3个）
-    articles.filter(function (a) { return a.published !== false; }).slice(0, 3).forEach(function (a) {
+    // 3. 文章封面（前2个）
+    articles.filter(function (a) { return a.published !== false; }).slice(0, 2).forEach(function (a) {
       if (a.cover_image) urls.push(getImgUrl(a.cover_image));
     });
-    // 头像
-    if (about.avatar_url) urls.push(getImgUrl(about.avatar_url));
+    // 4. 相册（前4个）
+    gallery.slice(0, 4).forEach(function (g) {
+      if (g.image_url) urls.push(getImgUrl(g.image_url));
+    });
+    // 5. 作品封面（后几个）
+    projects.slice(2, 4).forEach(function (p) {
+      if (p.icon_url) urls.push(getImgUrl(p.icon_url));
+    });
+    // 6. 文章封面（后几个）
+    articles.filter(function (a) { return a.published !== false; }).slice(2, 4).forEach(function (a) {
+      if (a.cover_image) urls.push(getImgUrl(a.cover_image));
+    });
 
     // 去重
     urls = urls.filter(function(url) {
@@ -620,13 +670,37 @@
       return;
     }
 
-    // 直接开始预加载
-    ImagePreloader.preloadAll(urls);
-    console.log('[博客] 关键图片预加载:', urls.length, '张');
+    // 显示加载指示器
+    showImgLoadingIndicator();
+    updateImgLoadingIndicator('加载图片...');
+
+    // 优先加载高优先级图片（首屏可见的）
+    console.log('[博客] 开始预加载关键图片（' + urls.length + '张）:', urls.map(function(u) { return u.split('/').pop(); }));
+
+    // 开始预加载，使用 Promise.all 追踪完成
+    Promise.all(urls.map(function(url) {
+      return ImagePreloader.preload(url).then(function(img) {
+        if (img) {
+          // 记录文件名便于调试
+          console.log('[博客] ✓ 预加载成功:', url.split('/').pop());
+        }
+        return img;
+      });
+    })).then(function(results) {
+      var successCount = results.filter(function(r) { return r !== null; }).length;
+      updateImgLoadingIndicator('加载完成 ✓ (' + successCount + '/' + urls.length + ')');
+      console.log('[博客] 预加载完成: ' + successCount + '/' + urls.length + ' 张成功');
+      // 1秒后隐藏指示器
+      setTimeout(hideImgLoadingIndicator, 1000);
+    }).catch(function(err) {
+      console.error('[博客] 预加载出错:', err);
+      hideImgLoadingIndicator();
+    });
   }
 
   // 在数据加载前预先启动（抢占先机）
   (function preloadBeforeRender() {
+    console.log('[博客] 开始预加载关键图片...');
     // 先获取 URL 列表（不阻塞）
     var files = ['projects', 'gallery', 'articles', 'about'];
     Promise.all(files.map(function (f) {
@@ -813,7 +887,7 @@
       if (p.pdf_url) {
         pdfBtn = '<a onclick="openProjectPDF(\'' + esc(p.pdf_url) + '\',\'' + esc(p.title) + '\')" class="proj-pdf-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg> ' + t('btn_pdf') + '</a>';
       }
-      // 图标：直接用 src 让浏览器立即加载（首屏可见）
+      // 图标：首屏显示骨架屏占位，图片加载完成后淡入
       var iconHtml = '';
       if (p.icon_url) {
         var fullUrl = getImgUrl(p.icon_url);
@@ -824,12 +898,21 @@
         var fallbackUrls = [cdn2, cdn3, pngFallback].filter(function(u) { return u && u !== fullUrl; });
         var fallbackData = fallbackUrls.join('|');
         var fallbackAttr = fallbackData ? ' data-fallback="' + esc(fallbackData) + '"' : '';
-        iconHtml = '<img src="' + fullUrl + '" alt="' + esc(p.title) + '" class="img-loaded"' + fallbackAttr + ' onerror="window._blogImgFallback(this)">';
+        // 检查是否已预加载
+        var isCached = ImagePreloader.cache.has(fullUrl);
+        if (isCached) {
+          // 已预加载：直接显示
+          iconHtml = '<img src="' + fullUrl + '" alt="' + esc(p.title) + '" class="img-loaded" style="opacity:1;position:relative;z-index:2" ' + fallbackAttr + '>';
+        } else {
+          // 未预加载：骨架屏占位 + 懒加载
+          iconHtml = '<span class="img-skeleton" style="position:absolute;inset:0;width:100%;height:100%;z-index:1"></span>' +
+                     '<img src="' + fullUrl + '" alt="' + esc(p.title) + '" style="position:relative;z-index:2;opacity:0" ' + fallbackAttr + ' onload="this.style.opacity=\'1\';this.previousElementSibling.style.display=\'none\'" onerror="window._blogImgFallback(this);this.style.opacity=\'1\';this.previousElementSibling.style.display=\'none\'">';
+        }
       } else {
         iconHtml = '<span style="position:relative;z-index:1;font-size:4rem;">' + (p.emoji || '📦') + '</span>';
       }
       return '<div class="proj-card fade-in">' +
-        '<div class="proj-thumb" style="background:' + (p.icon_url ? '#000' : gradient) + '">' +
+        '<div class="proj-thumb" style="background:' + (p.icon_url ? '#f0f0f0' : gradient) + '">' +
           iconHtml +
         '</div>' +
         '<div class="proj-body">' +
@@ -1203,7 +1286,7 @@
       gridEl.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:2rem;">' + t('empty_gal_cat') + '</p>';
       return;
     }
-    // 首屏前6张直接用 src 立即加载，第6张之后用 data-src 懒加载
+    // 首屏前6张显示骨架屏占位 + 懒加载，第6张之后用 data-src 懒加载
     gridEl.innerHTML = filtered.map(function (g, idx) {
       var imgSrc = g.image_url ? getImgUrl(g.image_url) : '';
       // 首屏前6张直接用 src，第6张之后用 data-src 懒加载
@@ -1221,11 +1304,12 @@
         if (useLazy) {
           img = '<img data-src="' + imgSrc + '" alt="' + esc(g.title || '') + '" style="opacity:0"' + fallbackAttr + ' onload="this.classList.remove(\'img-skeleton\');this.classList.add(\'img-loaded\');this.style.opacity=\'\'" onerror="window._blogImgFallback(this)">';
         } else {
-          // 首屏图片直接加载（秒显示）
-          img = '<img src="' + imgSrc + '" alt="' + esc(g.title || '') + '" class="img-loaded"' + fallbackAttr + ' onerror="window._blogImgFallback(this)">';
+          // 首屏图片：骨架屏占位 + 加载完成后淡入
+          img = '<span class="img-skeleton" style="position:absolute;inset:0;width:100%;height:100%;z-index:1"></span>' +
+                '<img src="' + imgSrc + '" alt="' + esc(g.title || '') + '" style="position:relative;z-index:2;opacity:0;width:100%;height:100%;object-fit:cover"' + fallbackAttr + ' onload="this.style.opacity=\'1\';this.style.objectFit=\'cover\';this.previousElementSibling.style.display=\'none\'" onerror="window._blogImgFallback(this);this.style.opacity=\'1\';this.previousElementSibling.style.display=\'none\'">';
         }
       }
-      var ph = !imgSrc ? '<div class="gal-ph">🖼️</div>' : '<div class="gal-ph img-skeleton" style="display:none">🖼️</div>';
+      var ph = !imgSrc ? '<div class="gal-ph">🖼️</div>' : '';
       return '<div class="gal-item fade-in" data-id="' + g.id + '">' +
         ph + img +
         '<div class="gal-overlay"><h4>' + esc(g.title || '') + '</h4><p>' + esc(g.description || '') + '</p></div>' +
@@ -1262,11 +1346,23 @@
     el.innerHTML = published.map(function (a) {
       var date = new Date(a.updated_at || a.created_at || Date.now()).toLocaleDateString('zh-CN');
       var summary = a.summary || (a.content || '').replace(/[#>*`\[\]\n]/g, '').trim().slice(0, 80) + '…';
-      var thumb = a.cover_image
-        ? '<img src="' + getImgUrl(a.cover_image) + '" alt="" class="img-loaded" onerror="this.style.display=\'none\'">'
-        : '<span style="position:relative;z-index:1;font-size:2.5rem;">📄</span>';
+      var thumb = '';
+      if (a.cover_image) {
+        var imgUrl = getImgUrl(a.cover_image);
+        var isCached = ImagePreloader.cache.has(imgUrl);
+        if (isCached) {
+          // 已预加载：直接显示
+          thumb = '<img src="' + imgUrl + '" alt="" class="img-loaded" style="opacity:1;position:relative;z-index:2" onerror="this.style.display=\'none\'">';
+        } else {
+          // 未预加载：骨架屏占位 + 懒加载
+          thumb = '<span class="img-skeleton" style="position:absolute;inset:0;width:100%;height:100%;z-index:1"></span>' +
+                  '<img src="' + imgUrl + '" alt="" style="position:relative;z-index:2;opacity:0" onload="this.style.opacity=\'1\';this.previousElementSibling.style.display=\'none\'" onerror="this.style.display=\'none\'">';
+        }
+      } else {
+        thumb = '<span style="position:relative;z-index:1;font-size:2.5rem;">📄</span>';
+      }
       return '<article class="art-card fade-in" data-id="' + a.id + '">' +
-        '<div class="art-thumb">' + thumb + '</div>' +
+        '<div class="art-thumb" style="position:relative;background:#f0f0f0">' + thumb + '</div>' +
         '<div class="art-body">' +
           '<div class="art-meta"><span class="cat">' + esc(a.category || '其他') + '</span><span>' + date + '</span></div>' +
           '<h3>' + esc(a.title) + '</h3>' +
