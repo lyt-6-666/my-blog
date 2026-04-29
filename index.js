@@ -113,8 +113,8 @@
   var DATA = BASE + '/data';
   // 判断是否为本地环境（localhost）
   var IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  // CDN 配置：图片用 Gitee（国内快），静态文件用 GitHub
-  var CDN_IMG = [  // 图片 CDN：Gitee 优先
+  // CDN 配置：图片/文档用 Gitee（国内快），静态文件用 GitHub
+  var CDN_IMG = [  // 图片+文档 CDN：Gitee 优先
     'https://gitee.com/LYT666999-luck/my-blog/raw/master',
     'https://ghproxy.net/https://github.com/LYT-6-666/my-blog/raw/main',
     'https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main'
@@ -127,14 +127,16 @@
   var CDN_IMG_PRIMARY = CDN_IMG[0];
   var CDN_STATIC_PRIMARY = CDN_STATIC[0];
   
-  // 判断是否为图片路径
+  // 判断是否为图片/文档路径（走 Gitee CDN）
   function isImagePath(path) {
     if (!path) return false;
     // 图片路径：images/ 目录、data/gallery/、data/projects/、data/hero/
+    // 文档路径：docs/ 目录
     return path.startsWith('images/') || 
            path.startsWith('data/gallery/') ||
            path.startsWith('data/projects/') ||
            path.startsWith('data/hero/') ||
+           path.startsWith('docs/') ||
            path.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i);
   }
   
