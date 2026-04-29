@@ -2,43 +2,97 @@
  * index.js - 博客前端数据加载器
  * 从 data/*.json 读取内容，动态渲染页面
  * 与 admin.html 的数据字段一一对应
- * 图片秒加载优化：骨架屏 + 预加载 + 渐进式淡入
+ * 图片秒加载优化：骨架屏 + 预加载 + 渐进式淡入 + 重试机制
  */
 (function () {
   'use strict';
 
   // ===========================
-  // 图片预加载管理器（秒加载核心）
+  // 图片预加载管理器（秒加载核心 + 重试机制）
   // ===========================
   var ImagePreloader = {
     cache: new Map(),
     loading: new Map(), // 正在加载中的图片
+    retryCount: new Map(), // 重试计数
     observer: null,
+    maxRetries: 2, // 最多重试2次
 
-    // 预加载单张图片
-    preload(url) {
-      if (!url || this.cache.has(url) || this.loading.has(url)) {
-        return this.cache.has(url) ? Promise.resolve(this.cache.get(url)) : Promise.resolve();
+    // 预加载单张图片（带重试机制，WebP/CDN 降级由调用方处理）
+    preload(url, retryCount) {
+      if (!url) return Promise.resolve(null);
+      if (this.cache.has(url)) return Promise.resolve(this.cache.get(url));
+      if (this.loading.has(url)) {
+        return new Promise((resolve) => {
+          var checkLoaded = setInterval(() => {
+            if (!this.loading.has(url)) {
+              clearInterval(checkLoaded);
+              resolve(this.cache.get(url) || null);
+            }
+          }, 100);
+          setTimeout(() => {
+            clearInterval(checkLoaded);
+            resolve(null);
+          }, 15000);
+        });
       }
-      return new Promise((resolve, reject) => {
+      retryCount = retryCount || 0;
+      return new Promise((resolve) => {
+        var self = this;
         this.loading.set(url, true);
         var img = new Image();
-        img.onload = () => {
-          this.cache.set(url, img);
-          this.loading.delete(url);
+        var timeoutId = setTimeout(() => {
+          img.src = '';
+          if (retryCount < self.maxRetries) {
+            console.log('⏳ 图片加载超时，尝试重试 (' + (retryCount + 1) + '/' + self.maxRetries + '):', url);
+            self.loading.delete(url);
+            setTimeout(() => {
+              self.preload(url, retryCount + 1).then(resolve);
+            }, 1000 * (retryCount + 1));
+          } else {
+            self.loading.delete(url);
+            console.warn('❌ 图片加载失败（已重试' + self.maxRetries + '次）:', url);
+            resolve(null);
+          }
+        }, 10000);
+
+        img.onload = function() {
+          clearTimeout(timeoutId);
+          self.cache.set(url, img);
+          self.loading.delete(url);
+          self.retryCount.delete(url);
           resolve(img);
         };
-        img.onerror = () => {
-          this.loading.delete(url);
-          resolve(); // 失败也继续
+        img.onerror = function() {
+          clearTimeout(timeoutId);
+          if (retryCount < self.maxRetries) {
+            console.log('⚠️ 图片加载失败，尝试重试 (' + (retryCount + 1) + '/' + self.maxRetries + '):', url);
+            self.loading.delete(url);
+            setTimeout(() => {
+              self.preload(url, retryCount + 1).then(resolve);
+            }, 1000 * (retryCount + 1));
+          } else {
+            self.loading.delete(url);
+            self.retryCount.delete(url);
+            console.warn('❌ 图片加载失败（已重试' + self.maxRetries + '次）:', url);
+            resolve(null);
+          }
         };
         img.src = url;
       });
     },
 
-    // 批量预加载
-    async preloadAll(urls) {
-      await Promise.all(urls.filter(Boolean).map(url => this.preload(url)));
+    // 批量预加载（首屏优先）
+    async preloadAll(urls, priorityFirst) {
+      urls = urls.filter(Boolean);
+      if (priorityFirst && urls.length > 0) {
+        // 首屏优先：先加载第一张，再加载其余的
+        await this.preload(urls[0]);
+        if (urls.length > 1) {
+          await Promise.all(urls.slice(1).map(url => this.preload(url)));
+        }
+      } else {
+        await Promise.all(urls.map(url => this.preload(url)));
+      }
     },
 
     // 初始化 IntersectionObserver（图片即将进入视口时预加载）
@@ -58,7 +112,7 @@
             this.observer.unobserve(img);
           }
         });
-      }, { rootMargin: '200px 0px' }); // 提前200px开始加载
+      }, { rootMargin: '300px 0px' }); // 提前 300px 开始加载，确保流畅
     },
 
     // 为图片添加懒加载监听
@@ -77,37 +131,96 @@
     return p || '';
   })();
   var DATA = BASE + '/data';
-  // CDN 前缀：GitHub Pages 环境直接用 jsDelivr CDN 读取图片（最快）
-  var CDN = 'https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main';
   // 判断是否为本地环境（localhost）
   var IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  // 获取图片完整 URL：本地用相对路径，线上用 CDN
-  function getImgUrl(path) {
+  // CDN 前缀：GitHub Pages 环境用 jsDelivr CDN（支持多CDN备用）
+  var CDN_PRIMARY   = 'https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main';
+  var CDN_FALLBACK   = 'https://gcore.jsdelivr.net/gh/LYT-6-666/my-blog@main';  // Gcore CDN 备用
+  var CDN_THIRD     = 'https://fastly.jsdelivr.net/gh/LYT-6-666/my-blog@main';   // Fastly 备用
+  // 检测浏览器 WebP 支持
+  var SUPPORT_WEBP = (function() {
+    try {
+      var c = document.createElement('canvas');
+      return c.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+    } catch(e) { return false; }
+  })();
+  // 获取图片完整 URL：本地用相对路径，线上用 CDN（支持 WebP 自动探测）
+  // noWebp: 设为 true 时强制返回非 WebP URL
+  function getImgUrl(path, noWebp) {
     if (!path) return '';
     if (path.startsWith('http')) return path;
-    return IS_LOCAL ? (BASE ? BASE + '/' + path : path) : (CDN + '/' + path);
+    var base = IS_LOCAL ? (BASE ? BASE + '/' + path : path) : (CDN_PRIMARY + '/' + path);
+    // 浏览器支持 WebP 时，尝试 .webp 版本（更小更快）
+    if (noWebp !== true && SUPPORT_WEBP && path.match(/\.(png|jpg|jpeg)$/i)) {
+      var webpUrl = base.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+      return webpUrl;
+    }
+    return base;
   }
-  // 获取文档完整 URL：本地用相对路径，线上用 CDN
-  function getDocUrl(path) {
+  // 获取文档完整 URL：本地用相对路径，线上用多 CDN 备用
+  function getDocUrl(path, forFetch) {
     if (!path) return '';
     if (path.startsWith('http')) return path;
-    return IS_LOCAL ? (BASE ? BASE + '/' + path : path) : (CDN + '/' + path);
+    if (IS_LOCAL) return BASE ? BASE + '/' + path : path;
+    return CDN_PRIMARY + '/' + path;
   }
 
   // ===========================
-  // 创建带骨架屏的图片元素
+  // 图片加载降级处理（WebP → 原图 → CDN备用）
+  // ===========================
+  // 当图片加载失败时自动尝试降级到更小的格式/CDN
+  window._blogImgFallback = function(img) {
+    var fallbacks = (img.getAttribute('data-fallback') || '').split('|');
+    if (!fallbacks || fallbacks.length === 0) {
+      // 没有备用地址，直接隐藏
+      img.style.display = 'none';
+      if (img.nextElementSibling) img.nextElementSibling.style.display = 'flex';
+      return;
+    }
+    var tried = img._blogTried || [];
+    // 找到下一个未尝试的备用地址
+    var nextUrl = null;
+    for (var i = 0; i < fallbacks.length; i++) {
+      if (tried.indexOf(fallbacks[i]) === -1) {
+        nextUrl = fallbacks[i];
+        tried.push(nextUrl);
+        break;
+      }
+    }
+    if (!nextUrl) {
+      // 所有备用地址都试过了，隐藏
+      img.style.display = 'none';
+      if (img.nextElementSibling) img.nextElementSibling.style.display = 'flex';
+      return;
+    }
+    img._blogTried = tried;
+    console.log('🔄 尝试备用图片: ' + nextUrl);
+    img.src = nextUrl;
+  };
+
+  // ===========================
+  // 创建带骨架屏的图片元素（自动 WebP + CDN 备用）
   // ===========================
   function createLazyImage(url, alt, className, isFirstScreen) {
     if (!url) {
-      return '<span class="img-skeleton" style="display:flex;align-items:center;justify-content:center;font-size:2rem;">🖼️</span>';
+      return '<span class="img-skeleton" style="display:flex;align-items:center;justify-content:center;font-size:2rem;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite">🖼️</span>';
     }
-    var fullUrl = getImgUrl(url);
+    var webpUrl  = getImgUrl(url, false);       // 非 WebP 原图（CDN）
+    var tryWebp  = getImgUrl(url, false).replace(/\.(png|jpg|jpeg)$/i, '.webp');
+    var cdn2      = webpUrl.replace(CDN_PRIMARY, CDN_FALLBACK).replace(/\.(png|jpg|jpeg)$/i, '.webp');
+    var cdn3      = webpUrl.replace(CDN_PRIMARY, CDN_THIRD).replace(/\.(png|jpg|jpeg)$/i, '.webp');
+    var origCdn2  = webpUrl.replace(CDN_PRIMARY, CDN_FALLBACK);
+    var origCdn3  = webpUrl.replace(CDN_PRIMARY, CDN_THIRD);
+    // 拼接备用 URL 列表（WebP 优先，原图 + CDN 备用）
+    var fallbackData = [tryWebp, webpUrl, cdn2, origCdn2, cdn3, origCdn3].join('|');
+    var imgAttrs = 'data-fallback="' + esc(fallbackData) + '"';
     if (isFirstScreen) {
-      // 首屏图片：立即加载，添加淡入效果
-      return '<img src="' + fullUrl + '" alt="' + esc(alt) + '" class="' + (className || '') + '" onload="this.classList.add(\'img-loaded\')" onerror="this.style.display=\'none\'">';
+      // 首屏：立即加载 WebP（如果失败，onerror 自动降级）
+      var src = SUPPORT_WEBP ? tryWebp : webpUrl;
+      return '<img src="' + src + '" alt="' + esc(alt) + '" class="' + (className || '') + ' img-fade-in" onload="this.classList.add(\'img-loaded\')" onerror="window._blogImgFallback(this)" ' + imgAttrs + '><span class="img-error" style="display:none;align-items:center;justify-content:center;font-size:2rem;background:#f5f5f5;color:#999;">⚠️ 加载失败</span>';
     } else {
-      // 非首屏图片：使用 data-src 懒加载
-      return '<img data-src="' + fullUrl + '" alt="' + esc(alt) + '" class="img-skeleton ' + (className || '') + '" style="opacity:0" onload="this.classList.remove(\'img-skeleton\');this.classList.add(\'img-loaded\');this.style.opacity=\'\'" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">';
+      // 非首屏：data-src 由 IntersectionObserver 触发加载
+      return '<img data-src="' + (SUPPORT_WEBP ? tryWebp : webpUrl) + '" alt="' + esc(alt) + '" class="img-skeleton ' + (className || '') + '" style="opacity:0" onload="this.classList.remove(\'img-skeleton\');this.classList.add(\'img-loaded\');this.style.opacity=\'1\'" onerror="window._blogImgFallback(this)" ' + imgAttrs + '><span class="img-error" style="display:none;align-items:center;justify-content:center;font-size:2rem;background:#f5f5f5;color:#999;">⚠️ 加载失败</span>';
     }
   }
 
