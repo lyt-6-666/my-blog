@@ -6,9 +6,9 @@
     "footer_desc": "让CAD操作更高效"
   },
   "software": {
-    "title": "扫码下载",
+    "title": "扫码进群下载软件",
     "desc": "长按识别二维码，加入交流群获取最新版本",
     "qrcode": "images/qrcode_1777426351592.webp",
-    "enabled": true
+    "enabled": false
   }
 }
