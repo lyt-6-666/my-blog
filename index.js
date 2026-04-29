@@ -47,13 +47,13 @@
             self.loading.delete(url);
             setTimeout(() => {
               self.preload(url, retryCount + 1).then(resolve);
-            }, 1000 * (retryCount + 1));
+            }, 2000 * (retryCount + 1)); // 增加重试间隔 2s, 4s
           } else {
             self.loading.delete(url);
             console.warn('❌ 图片加载失败（已重试' + self.maxRetries + '次）:', url);
             resolve(null);
           }
-        }, 10000);
+        }, 15000); // 增加超时到 15s
 
         img.onload = function() {
           clearTimeout(timeoutId);
@@ -178,10 +178,10 @@
       return;
     }
     var tried = img._blogTried || [];
-    // 找到下一个未尝试的备用地址
+    // 找到下一个未尝试的备用地址（过滤空字符串）
     var nextUrl = null;
     for (var i = 0; i < fallbacks.length; i++) {
-      if (tried.indexOf(fallbacks[i]) === -1) {
+      if (fallbacks[i] && tried.indexOf(fallbacks[i]) === -1) {
         nextUrl = fallbacks[i];
         tried.push(nextUrl);
         break;
@@ -579,7 +579,16 @@
   // 首屏图片预加载（秒加载核心）
   // 在 DOM 渲染前就开始，提前抢占带宽
   // ===========================
+  var _preloadedCriticalUrls = []; // 记录已预加载的 URL，避免重复预加载
+  var _preloadDone = false; // 防止重复预加载标志
+
   function preloadCriticalImages(projects, gallery, articles, about) {
+    if (_preloadDone) {
+      console.log('[博客] 关键图片已预加载，跳过重复调用');
+      return;
+    }
+    _preloadDone = true;
+
     var urls = [];
     // 作品封面（全部，因为作品区通常在首屏）
     projects.slice(0, 4).forEach(function (p) {
@@ -596,7 +605,19 @@
     // 头像
     if (about.avatar_url) urls.push(getImgUrl(about.avatar_url));
 
-    // 直接开始预加载，不等待 requestIdleCallback
+    // 去重
+    urls = urls.filter(function(url) {
+      if (!url || _preloadedCriticalUrls.indexOf(url) >= 0) return false;
+      _preloadedCriticalUrls.push(url);
+      return true;
+    });
+
+    if (urls.length === 0) {
+      console.log('[博客] 无需预加载的关键图片');
+      return;
+    }
+
+    // 直接开始预加载
     ImagePreloader.preloadAll(urls);
     console.log('[博客] 关键图片预加载:', urls.length, '张');
   }
@@ -793,7 +814,12 @@
       var iconHtml = '';
       if (p.icon_url) {
         var fullUrl = getImgUrl(p.icon_url);
-        iconHtml = '<img src="' + fullUrl + '" alt="' + esc(p.title) + '" class="img-loaded" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">';
+        // 生成 CDN 备用 URL 列表
+        var cdn2 = fullUrl.replace(CDN_PRIMARY, CDN_FALLBACK);
+        var cdn3 = fullUrl.replace(CDN_PRIMARY, CDN_THIRD);
+        var fallbackData = [cdn2, cdn3].filter(function(u) { return u !== fullUrl; }).join('|');
+        var fallbackAttr = fallbackData ? ' data-fallback="' + esc(fallbackData) + '"' : '';
+        iconHtml = '<img src="' + fullUrl + '" alt="' + esc(p.title) + '" class="img-loaded"' + fallbackAttr + ' onerror="window._blogImgFallback(this)">';
       } else {
         iconHtml = '<span style="position:relative;z-index:1;font-size:4rem;">' + (p.emoji || '📦') + '</span>';
       }
@@ -1179,11 +1205,17 @@
       var useLazy = idx >= 6;
       var img = '';
       if (imgSrc) {
+        // 生成 CDN 备用 URL 列表
+        var cdn2 = imgSrc.replace(CDN_PRIMARY, CDN_FALLBACK);
+        var cdn3 = imgSrc.replace(CDN_PRIMARY, CDN_THIRD);
+        var fallbackData = [cdn2, cdn3].filter(function(u) { return u !== imgSrc; }).join('|');
+        var fallbackAttr = fallbackData ? ' data-fallback="' + esc(fallbackData) + '"' : '';
+
         if (useLazy) {
-          img = '<img data-src="' + imgSrc + '" alt="' + esc(g.title || '') + '" style="opacity:0" onload="this.classList.remove(\'img-skeleton\');this.classList.add(\'img-loaded\');this.style.opacity=\'\'" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">';
+          img = '<img data-src="' + imgSrc + '" alt="' + esc(g.title || '') + '" style="opacity:0"' + fallbackAttr + ' onload="this.classList.remove(\'img-skeleton\');this.classList.add(\'img-loaded\');this.style.opacity=\'\'" onerror="window._blogImgFallback(this)">';
         } else {
           // 首屏图片直接加载（秒显示）
-          img = '<img src="' + imgSrc + '" alt="' + esc(g.title || '') + '" class="img-loaded" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\')">';
+          img = '<img src="' + imgSrc + '" alt="' + esc(g.title || '') + '" class="img-loaded"' + fallbackAttr + ' onerror="window._blogImgFallback(this)">';
         }
       }
       var ph = !imgSrc ? '<div class="gal-ph">🖼️</div>' : '<div class="gal-ph img-skeleton" style="display:none">🖼️</div>';
@@ -1256,7 +1288,8 @@
     if (layout && about.title) {
       var avatarContent = '';
       if (about.avatar_url) {
-        avatarContent = '<img src="' + BASE + '/' + about.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" class="img-loaded" alt="avatar" onerror="this.style.display=\'none\'">';
+        // 使用统一的 getImgUrl 处理 CDN 和 WebP
+        avatarContent = '<img src="' + getImgUrl(about.avatar_url) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" class="img-loaded" alt="avatar" onerror="this.style.display=\'none\'">';
       } else {
         avatarContent = (about.avatar || '👤');
       }
