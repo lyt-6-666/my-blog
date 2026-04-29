@@ -1003,14 +1003,17 @@
     document.addEventListener('keydown', docEscHandler);
     // 非PDF时才 fetch 加载文档内容
     if (!isPdf) {
-      // 加载文档内容：优先主 CDN，失败后自动尝试备用 CDN
-      var urls = [fullUrl];
-      // 备用 CDN：替换为 Gitee 和 jsDelivr
-      if (!IS_LOCAL) {
-        urls.push(CDN_STATIC[1] + '/' + docUrl);
-        urls.push(CDN_STATIC[2] + '/' + docUrl);
-        // GitHub 直接链接（不经过代理）
+      // 加载文档内容：jsDelivr 支持跨域且全球加速，最可靠
+      var urls = [];
+      if (IS_LOCAL) {
+        urls.push(fullUrl);
+      } else {
+        // jsDelivr 首选：免费、支持 CORS、速度快
+        urls.push('https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main/' + docUrl);
+        // GitHub raw 备用（也支持 CORS）
         urls.push('https://raw.githubusercontent.com/LYT-6-666/my-blog/main/' + docUrl);
+        // 同源加载备用（GitHub Pages 自身）
+        urls.push(location.origin + (BASE ? BASE + '/' : '/') + docUrl);
       }
       fetchWithFallback(urls, 0);
     }
