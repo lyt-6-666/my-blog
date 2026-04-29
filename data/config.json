@@ -1,8 +1,14 @@
 {
   "software": {
-    "title": "扫码进群下载软件",
+    "title": "????",
     "enabled": true,
-    "desc": "获取更多软件更新详情，欢迎大家进群交流探讨，学习。",
-    "qrcode": "images/qrcode_1777427843599.webp"
+    "desc": "????",
+    "qrcode": ""
+  },
+  "site": {
+    "title": "不加班的小刘个人博客",
+    "logo": "🔧 不加班的小刘",
+    "footer_bottom": "© 2026 不加班的小刘",
+    "footer_desc": "CAD二次开发 · 效率工具"
   }
 }
