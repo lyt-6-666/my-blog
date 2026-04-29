@@ -17,67 +17,49 @@
     observer: null,
     maxRetries: 2, // 最多重试2次
 
-    // 预加载单张图片（带重试机制，WebP/CDN 降级由调用方处理）
-    preload(url, retryCount) {
+    // 预加载单张图片（自动尝试多个 CDN，找到最快的）
+    preload(url, retryCount, cdnIndex) {
       if (!url) return Promise.resolve(null);
       if (this.cache.has(url)) return Promise.resolve(this.cache.get(url));
-      if (this.loading.has(url)) {
-        return new Promise((resolve) => {
-          var checkLoaded = setInterval(() => {
-            if (!this.loading.has(url)) {
-              clearInterval(checkLoaded);
-              resolve(this.cache.get(url) || null);
-            }
-          }, 100);
-          setTimeout(() => {
-            clearInterval(checkLoaded);
-            resolve(null);
-          }, 15000);
-        });
-      }
+      
+      cdnIndex = cdnIndex || 0;
       retryCount = retryCount || 0;
+      
+      // 如果当前 CDN 全部失败，记录失败但继续
+      if (cdnIndex >= CDN_ALL.length) {
+        console.warn('❌ 所有CDN都失败:', url);
+        return Promise.resolve(null);
+      }
+      
+      // 生成当前 CDN 的 URL
+      var cdnBase = CDN_ALL[cdnIndex];
+      var cdnUrl = url.replace(CDN_ALL[0], cdnBase);  // 用当前 CDN 替换原 URL
+      
       return new Promise((resolve) => {
         var self = this;
-        this.loading.set(url, true);
         var img = new Image();
         var timeoutId = setTimeout(() => {
           img.src = '';
-          if (retryCount < self.maxRetries) {
-            console.log('⏳ 图片加载超时，尝试重试 (' + (retryCount + 1) + '/' + self.maxRetries + '):', url);
-            self.loading.delete(url);
-            setTimeout(() => {
-              self.preload(url, retryCount + 1).then(resolve);
-            }, 2000 * (retryCount + 1)); // 增加重试间隔 2s, 4s
-          } else {
-            self.loading.delete(url);
-            console.warn('❌ 图片加载失败（已重试' + self.maxRetries + '次）:', url);
-            resolve(null);
-          }
-        }, 15000); // 增加超时到 15s
+          // 当前 CDN 超时，尝试下一个
+          console.log('⏳ CDN' + (cdnIndex + 1) + '超时，尝试下一个...', url.split('/').pop());
+          self.preload(url, 0, cdnIndex + 1).then(resolve);
+        }, 8000); // 8秒超时
 
         img.onload = function() {
           clearTimeout(timeoutId);
           self.cache.set(url, img);
           self.loading.delete(url);
-          self.retryCount.delete(url);
           resolve(img);
         };
         img.onerror = function() {
           clearTimeout(timeoutId);
-          if (retryCount < self.maxRetries) {
-            console.log('⚠️ 图片加载失败，尝试重试 (' + (retryCount + 1) + '/' + self.maxRetries + '):', url);
-            self.loading.delete(url);
-            setTimeout(() => {
-              self.preload(url, retryCount + 1).then(resolve);
-            }, 1000 * (retryCount + 1));
-          } else {
-            self.loading.delete(url);
-            self.retryCount.delete(url);
-            console.warn('❌ 图片加载失败（已重试' + self.maxRetries + '次）:', url);
-            resolve(null);
-          }
+          // 当前 CDN 失败，尝试下一个
+          console.log('⚠️ CDN' + (cdnIndex + 1) + '失败，尝试下一个...', url.split('/').pop());
+          self.preload(url, 0, cdnIndex + 1).then(resolve);
         };
-        img.src = url;
+        img.src = cdnUrl;
+      });
+    },
       });
     },
 
@@ -133,29 +115,34 @@
   var DATA = BASE + '/data';
   // 判断是否为本地环境（localhost）
   var IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  // CDN 前缀：主用 jsDelivr + 多 CDN 备用（自动降级）
-  // 如果主 CDN 慢或失败，fallback 函数会自动尝试备用 CDN
-  var CDN_PRIMARY   = 'https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main';
-  var CDN_FALLBACK   = 'https://cdn.statically.io/gh/LYT-6-666/my-blog@main'; // Statically CDN 备用
-  var CDN_THIRD     = 'https://cdn.jswebcdn.com/gh/LYT-6-666/my-blog@main';  // 国内 jsDelivr 镜像
+  // CDN 配置：Gitee 优先（国内访问快）+ GitHub 备用
+  var CDN_ALL = [
+    'https://gitee.com/LYT-6-666/my-blog/raw/main',  // Gitee 国内快（首选）
+    'https://ghproxy.net/https://github.com/LYT-6-666/my-blog/raw/main',  // GitHub 代理1
+    'https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main'  // jsDelivr（备用）
+  ];
+  var CDN_PRIMARY = CDN_ALL[0];  // 默认使用 Gitee
   // 获取图片完整 URL：本地用相对路径，线上用 CDN
-  // 用户上传的都是 WebP 格式，直接返回 CDN URL，由 onerror 处理浏览器兼容性
-  function getImgUrl(path, noWebp) {
+  function getImgUrl(path) {
     if (!path) return '';
     if (path.startsWith('http')) return path;
     var base = IS_LOCAL ? (BASE ? BASE + '/' + path : path) : (CDN_PRIMARY + '/' + path);
-    // 图片已经是 WebP 格式（用户直接上传的），直接返回 CDN URL
-    // 如果浏览器不支持 WebP，onerror 会尝试 fallback
     return base;
   }
-
+  
+  // 获取图片的备用 CDN URL（用于 HTML data-fallback 属性）
+  function getImgFallbackUrls(path) {
+    if (!path) return [];
+    if (path.startsWith('http')) return [];
+    return CDN_ALL.slice(1).map(function(cdn) {
+      return cdn + '/' + path;
+    });
+  }
+  
   // 获取图片的备用格式 URL（用于不支持 WebP 时降级）
-  // 注意：必须有原图（PNG/JPG）才能降级，否则无意义
   function getImgFallbackUrl(path) {
     if (!path) return '';
     if (path.match(/\.webp$/i)) {
-      // WebP 图片：尝试转为 PNG 作为最后的备选
-      // 注意：如果没有原图，这个降级会失败，但可以防止浏览器空白
       var base = path.startsWith('http') ? path : (CDN_PRIMARY + '/' + path);
       return base.replace(/\.webp$/i, '.png');
     }
@@ -210,12 +197,8 @@
       return '<span class="img-skeleton" style="display:flex;align-items:center;justify-content:center;font-size:2rem;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite">🖼️</span>';
     }
     var imgUrl = getImgUrl(url); // 直接获取 CDN URL
-    // 生成 CDN 备用 URL 列表
-    var cdn2 = imgUrl.replace(CDN_PRIMARY, CDN_FALLBACK);
-    var cdn3 = imgUrl.replace(CDN_PRIMARY, CDN_THIRD);
-    // 如果是 WebP，添加 PNG 降级（最后的备选）
-    var pngFallback = getImgFallbackUrl(url);
-    var fallbackUrls = [cdn2, cdn3, pngFallback].filter(function(u) { return u && u !== imgUrl; });
+    // 生成备用 CDN URL 列表
+    var fallbackUrls = getImgFallbackUrls(url);
     var fallbackData = fallbackUrls.join('|');
     var fallbackAttr = fallbackData ? ' data-fallback="' + esc(fallbackData) + '"' : '';
     // 检查图片是否已在缓存中（预加载成功）
@@ -891,11 +874,8 @@
       var iconHtml = '';
       if (p.icon_url) {
         var fullUrl = getImgUrl(p.icon_url);
-        // 生成 CDN 备用 URL 列表
-        var cdn2 = fullUrl.replace(CDN_PRIMARY, CDN_FALLBACK);
-        var cdn3 = fullUrl.replace(CDN_PRIMARY, CDN_THIRD);
-        var pngFallback = getImgFallbackUrl(p.icon_url);
-        var fallbackUrls = [cdn2, cdn3, pngFallback].filter(function(u) { return u && u !== fullUrl; });
+        // 生成备用 CDN URL 列表
+        var fallbackUrls = getImgFallbackUrls(p.icon_url);
         var fallbackData = fallbackUrls.join('|');
         var fallbackAttr = fallbackData ? ' data-fallback="' + esc(fallbackData) + '"' : '';
         // 检查是否已预加载
@@ -1293,11 +1273,8 @@
       var useLazy = idx >= 6;
       var img = '';
       if (imgSrc) {
-        // 生成 CDN 备用 URL 列表
-        var cdn2 = imgSrc.replace(CDN_PRIMARY, CDN_FALLBACK);
-        var cdn3 = imgSrc.replace(CDN_PRIMARY, CDN_THIRD);
-        var pngFallback = getImgFallbackUrl(g.image_url);
-        var fallbackUrls = [cdn2, cdn3, pngFallback].filter(function(u) { return u && u !== imgSrc; });
+        // 生成备用 CDN URL 列表
+        var fallbackUrls = getImgFallbackUrls(g.image_url);
         var fallbackData = fallbackUrls.join('|');
         var fallbackAttr = fallbackData ? ' data-fallback="' + esc(fallbackData) + '"' : '';
 
