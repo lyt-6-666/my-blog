@@ -60,8 +60,6 @@
         img.src = cdnUrl;
       });
     },
-      });
-    },
 
     // 批量预加载（首屏优先）
     async preloadAll(urls, priorityFirst) {
