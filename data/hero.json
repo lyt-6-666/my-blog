@@ -1,9 +1,9 @@
 {
   "badge": "CAD二次开发 · 效率工具",
-  "headline_1": "让CAD操作",
-  "headline_2": "更高效",
-  "headline_3": "让工作回归",
-  "headline_4": "自动化",
+  "line_1": "让CAD操作 更高效",
+  "hl_1": "更高效",
+  "line_2": "让工作回归 自动化",
+  "hl_2": "自动化",
   "description": "专注CAD自动化工具开发，提升绘图效率，减少重复劳动。",
   "btn_1_text": "查看作品",
   "btn_1_link": "#projects",
