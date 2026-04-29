@@ -26,14 +26,14 @@
       retryCount = retryCount || 0;
       
       // 如果当前 CDN 全部失败，记录失败但继续
-      if (cdnIndex >= CDN_ALL.length) {
+      if (cdnIndex >= CDN_IMG.length) {
         console.warn('❌ 所有CDN都失败:', url);
         return Promise.resolve(null);
       }
       
       // 生成当前 CDN 的 URL
-      var cdnBase = CDN_ALL[cdnIndex];
-      var cdnUrl = url.replace(CDN_ALL[0], cdnBase);  // 用当前 CDN 替换原 URL
+      var cdnBase = CDN_IMG[cdnIndex];
+      var cdnUrl = url.replace(CDN_IMG[0], cdnBase);  // 用当前 CDN 替换原 URL
       
       return new Promise((resolve) => {
         var self = this;
@@ -113,19 +113,52 @@
   var DATA = BASE + '/data';
   // 判断是否为本地环境（localhost）
   var IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  // CDN 配置：Gitee 优先（国内访问快）+ GitHub 备用
-  // 注意：需要先把文件同步到 Gitee 仓库，图片才能通过 Gitee CDN 加载
-  var CDN_ALL = [
-    'https://gitee.com/LYT666999-luck/my-blog/raw/master',  // Gitee 国内快（首选）
-    'https://ghproxy.net/https://github.com/LYT-6-666/my-blog/raw/main',  // GitHub 代理
-    'https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main'  // jsDelivr（备用）
+  // CDN 配置：图片用 Gitee（国内快），静态文件用 GitHub
+  var CDN_IMG = [  // 图片 CDN：Gitee 优先
+    'https://gitee.com/LYT666999-luck/my-blog/raw/master',
+    'https://ghproxy.net/https://github.com/LYT-6-666/my-blog/raw/main',
+    'https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main'
   ];
-  var CDN_PRIMARY = CDN_ALL[0];  // 默认使用 Gitee
+  var CDN_STATIC = [  // 静态文件 CDN：GitHub 优先
+    'https://ghproxy.net/https://github.com/LYT-6-666/my-blog/raw/main',
+    'https://gitee.com/LYT666999-luck/my-blog/raw/master',
+    'https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main'
+  ];
+  var CDN_IMG_PRIMARY = CDN_IMG[0];
+  var CDN_STATIC_PRIMARY = CDN_STATIC[0];
+  
+  // 判断是否为图片路径
+  function isImagePath(path) {
+    if (!path) return false;
+    // 图片路径：images/ 目录、data/gallery/、data/projects/、data/hero/
+    return path.startsWith('images/') || 
+           path.startsWith('data/gallery/') ||
+           path.startsWith('data/projects/') ||
+           path.startsWith('data/hero/') ||
+           path.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i);
+  }
+  
+  // 获取 CDN URL
+  function getCdnUrl(path) {
+    if (isImagePath(path)) {
+      return CDN_IMG_PRIMARY;
+    }
+    return CDN_STATIC_PRIMARY;
+  }
+  
+  // 获取所有备用 CDN URL
+  function getCdnFallbacks(path) {
+    var cdns = isImagePath(path) ? CDN_IMG : CDN_STATIC;
+    return cdns.slice(1).map(function(cdn) {
+      return cdn + '/' + path;
+    });
+  }
   // 获取图片完整 URL：本地用相对路径，线上用 CDN
   function getImgUrl(path) {
     if (!path) return '';
     if (path.startsWith('http')) return path;
-    var base = IS_LOCAL ? (BASE ? BASE + '/' + path : path) : (CDN_PRIMARY + '/' + path);
+    var cdn = getCdnUrl(path);
+    var base = IS_LOCAL ? (BASE ? BASE + '/' + path : path) : (cdn + '/' + path);
     return base;
   }
   
@@ -133,26 +166,24 @@
   function getImgFallbackUrls(path) {
     if (!path) return [];
     if (path.startsWith('http')) return [];
-    return CDN_ALL.slice(1).map(function(cdn) {
-      return cdn + '/' + path;
-    });
+    return getCdnFallbacks(path);
   }
   
   // 获取图片的备用格式 URL（用于不支持 WebP 时降级）
   function getImgFallbackUrl(path) {
     if (!path) return '';
     if (path.match(/\.webp$/i)) {
-      var base = path.startsWith('http') ? path : (CDN_PRIMARY + '/' + path);
+      var base = path.startsWith('http') ? path : (getCdnUrl(path) + '/' + path);
       return base.replace(/\.webp$/i, '.png');
     }
     return '';
   }
-  // 获取文档完整 URL：本地用相对路径，线上用多 CDN 备用
+  // 获取文档完整 URL：本地用相对路径，线上用静态文件 CDN
   function getDocUrl(path, forFetch) {
     if (!path) return '';
     if (path.startsWith('http')) return path;
     if (IS_LOCAL) return BASE ? BASE + '/' + path : path;
-    return CDN_PRIMARY + '/' + path;
+    return CDN_STATIC_PRIMARY + '/' + path;
   }
 
   // ===========================
