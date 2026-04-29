@@ -298,18 +298,11 @@
       btn_view_details: '查看详情 →',
       btn_watch_video: '观看视频',
       btn_docs: '使用说明',
-      btn_pdf: 'PDF说明',
       btn_download: '下载PDF',
       // 加载状态
       loading: '加载中...',
       load_error: '加载失败',
       doc_error: '文档加载失败',
-      pdf_loading: '正在加载 PDF...',
-      pdf_error: 'PDF 加载失败',
-      // PDF 翻页
-      pdf_page: '页',
-      pdf_prev: '‹',
-      pdf_next: '›',
       // 视频弹窗
       video_title: '观看视频',
       // 关于页
@@ -361,18 +354,11 @@
       btn_view_details: 'View Details →',
       btn_watch_video: 'Watch Video',
       btn_docs: 'Documentation',
-      btn_pdf: 'PDF Guide',
       btn_download: 'Download PDF',
       // 加载状态
       loading: 'Loading...',
       load_error: 'Load failed',
       doc_error: 'Failed to load document',
-      pdf_loading: 'Loading PDF...',
-      pdf_error: 'PDF load failed',
-      // PDF 翻页
-      pdf_page: '',
-      pdf_prev: '‹',
-      pdf_next: '›',
       // 视频弹窗
       video_title: 'Watch Video',
       // 关于页
@@ -892,15 +878,11 @@
           }
         }
       }
-      // 使用说明按钮
+      // 使用说明按钮（支持 MD/TXT/PDF，统一弹窗打开）
       var docBtn = '';
-      if (p.doc_url) {
-        docBtn = '<a onclick="openProjectDoc(\'' + esc(p.doc_url) + '\',\'' + esc(p.title) + '\')" class="proj-doc-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6zm2-7h8v1.5H8V13zm0 3h5v1.5H8V16z"/></svg> ' + t('btn_docs') + '</a>';
-      }
-      // PDF 使用说明按钮
-      var pdfBtn = '';
-      if (p.pdf_url) {
-        pdfBtn = '<a onclick="openProjectPDF(\'' + esc(p.pdf_url) + '\',\'' + esc(p.title) + '\')" class="proj-pdf-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg> ' + t('btn_pdf') + '</a>';
+      var docFile = p.doc_url || p.pdf_url;
+      if (docFile) {
+        docBtn = '<a onclick="openProjectDoc(\'' + esc(docFile) + '\',\'' + esc(p.title) + '\')" class="proj-doc-link"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6zm2-7h8v1.5H8V13zm0 3h5v1.5H8V16z"/></svg> ' + t('btn_docs') + '</a>';
       }
       // 图标：首屏显示骨架屏占位，图片加载完成后淡入
       var iconHtml = '';
@@ -935,7 +917,6 @@
             (href ? '<a' + href + ' class="proj-link">' + t('btn_view_details') + '</a>' : '') +
             videoBtn +
             docBtn +
-            pdfBtn +
           '</div>' +
         '</div>' +
       '</div>';
@@ -984,31 +965,74 @@
     // 移除已有弹窗
     var old = document.getElementById('doc-modal');
     if (old) old.remove();
+    // 判断是否为 PDF 文件
+    var isPdf = /\.pdf$/i.test(docUrl);
+    var fullUrl = getDocUrl(docUrl);
     // 创建弹窗
     var modal = document.createElement('div');
     modal.id = 'doc-modal';
     modal.className = 'modal';
-    modal.innerHTML =
-      '<div class="modal-box" style="max-width:860px">' +
-        '<button class="modal-close" onclick="closeDocModal()">&times;</button>' +
-        '<div class="modal-body">' +
-          '<h2 style="margin-bottom:1rem;font-size:1.4rem">' + esc(title) + ' - ' + t('btn_docs') + '</h2>' +
-          '<div id="doc-modal-loading" style="text-align:center;padding:3rem;color:var(--text2)">' + t('loading') + '</div>' +
-          '<div id="doc-modal-content" class="md-content" style="display:none"></div>' +
-        '</div>' +
-      '</div>';
+    if (isPdf) {
+      // PDF：用 iframe 全屏预览，浏览器原生 PDF 渲染（边下边看）
+      modal.innerHTML =
+        '<div class="modal-box" style="max-width:960px;height:88vh;padding:0;display:flex;flex-direction:column">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.2rem;border-bottom:1px solid var(--border);flex-shrink:0">' +
+            '<h2 style="margin:0;font-size:1.1rem">' + esc(title) + ' - ' + t('btn_docs') + '</h2>' +
+            '<div style="display:flex;gap:.5rem;align-items:center">' +
+              '<a href="' + esc(fullUrl) + '" target="_blank" download style="font-size:.82rem;color:var(--accent);text-decoration:none;padding:.3rem .7rem;border-radius:6px;background:var(--soft);border:1px solid transparent">' + t('btn_download') + '</a>' +
+              '<button class="modal-close" onclick="closeDocModal()" style="position:static">&times;</button>' +
+            '</div>' +
+          '</div>' +
+          '<iframe src="' + esc(fullUrl) + '" style="flex:1;border:none;width:100%;min-height:0" loading="lazy"></iframe>' +
+        '</div>';
+    } else {
+      // MD/TXT：fetch 加载后用 marked 渲染
+      modal.innerHTML =
+        '<div class="modal-box" style="max-width:860px">' +
+          '<button class="modal-close" onclick="closeDocModal()">&times;</button>' +
+          '<div class="modal-body">' +
+            '<h2 style="margin-bottom:1rem;font-size:1.4rem">' + esc(title) + ' - ' + t('btn_docs') + '</h2>' +
+            '<div id="doc-modal-loading" style="text-align:center;padding:3rem;color:var(--text2)">' + t('loading') + '</div>' +
+            '<div id="doc-modal-content" class="md-content" style="display:none"></div>' +
+          '</div>' +
+        '</div>';
+    }
     document.body.appendChild(modal);
     requestAnimationFrame(function () { modal.classList.add('show'); });
     modal.addEventListener('click', function (e) { if (e.target === modal) closeDocModal(); });
     document.addEventListener('keydown', docEscHandler);
-    // 加载文档内容（使用 CDN 加速）
-    fetch(getDocUrl(docUrl))
-      .then(function (r) { return r.ok ? r.text() : null; })
+    // 非PDF时才 fetch 加载文档内容
+    if (!isPdf) {
+      // 加载文档内容：优先主 CDN，失败后自动尝试备用 CDN
+      var urls = [fullUrl];
+      // 备用 CDN：替换为 Gitee 和 jsDelivr
+      if (!IS_LOCAL) {
+        urls.push(CDN_STATIC[1] + '/' + docUrl);
+        urls.push(CDN_STATIC[2] + '/' + docUrl);
+        // GitHub 直接链接（不经过代理）
+        urls.push('https://raw.githubusercontent.com/LYT-6-666/my-blog/main/' + docUrl);
+      }
+      fetchWithFallback(urls, 0);
+    }
+  };
+
+  // 多 CDN 自动降级加载
+  function fetchWithFallback(urls, index) {
+    if (index >= urls.length) {
+      var loading = document.getElementById('doc-modal-loading');
+      if (loading) loading.textContent = t('doc_error');
+      return;
+    }
+    fetch(urls[index])
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      })
       .then(function (text) {
         var loading = document.getElementById('doc-modal-loading');
         var content = document.getElementById('doc-modal-content');
         if (!text) {
-          if (loading) loading.textContent = t('doc_error');
+          fetchWithFallback(urls, index + 1);
           return;
         }
         content.innerHTML = md2html(text);
@@ -1016,10 +1040,10 @@
         content.style.display = 'block';
       })
       .catch(function () {
-        var loading = document.getElementById('doc-modal-loading');
-        if (loading) loading.textContent = t('doc_error');
+        fetchWithFallback(urls, index + 1);
       });
-  };
+  }
+
   window.closeDocModal = function () {
     var modal = document.getElementById('doc-modal');
     if (modal) {
@@ -1029,223 +1053,6 @@
     document.removeEventListener('keydown', docEscHandler);
   };
   function docEscHandler(e) { if (e.key === 'Escape') window.closeDocModal(); }
-
-  // ===========================
-  // PDF 使用说明弹窗（使用 PDF.js 在线预览）
-  // ===========================
-  window.openProjectPDF = function (pdfUrl, title) {
-    var modal = document.getElementById('pdf-modal');
-    if (!modal) return;
-
-    // 重置状态：隐藏 canvas/controls，显示 loading
-    var loadingEl = document.getElementById('pdf-loading');
-    var canvas = document.getElementById('pdf-canvas');
-    var pageInfo = document.getElementById('pdf-page-info');
-    var prevBtn = document.getElementById('pdf-prev');
-    var nextBtn = document.getElementById('pdf-next');
-    var downloadBtn = document.getElementById('pdf-download');
-    var titleEl = document.getElementById('pdf-title');
-
-    if (titleEl) titleEl.textContent = title;
-    if (canvas) canvas.style.display = 'none';
-    if (loadingEl) { loadingEl.textContent = t('pdf_loading'); loadingEl.style.display = 'block'; }
-    if (pageInfo) {
-      if (currentLang === 'en') {
-        pageInfo.textContent = '0 / 0';
-      } else {
-        pageInfo.textContent = '0 / 0 页';
-      }
-    }
-    if (prevBtn) prevBtn.disabled = true;
-    if (nextBtn) nextBtn.disabled = true;
-
-    // 构造完整 URL
-    var fullPdfUrl = pdfUrl.startsWith('http') ? pdfUrl : (BASE ? BASE + '/' + pdfUrl : pdfUrl);
-    if (downloadBtn) { downloadBtn.href = fullPdfUrl; downloadBtn.target = '_blank'; }
-
-    // 重置 PDF 全局状态
-    _pdfDoc = null;
-    _pdfPage = 1;
-    _pdfTotal = 1;
-
-    // 显示弹窗
-    modal.classList.add('show');
-
-    // 点击背景关闭
-    var backdrop = modal.querySelector('.pdf-modal-backdrop');
-    if (backdrop) backdrop.addEventListener('click', window.closePDFModal);
-
-    // ESC 关闭
-    document.addEventListener('keydown', pdfEscHandler);
-
-    // 加载 PDF.js 并渲染（从本地同源加载，避免跨域 worker 问题）
-    loadPDFJS(fullPdfUrl);
-  };
-
-  // PDF.js 预加载标志（由 index.html 预加载脚本设置为 true）
-  var _pdfJsPreloaded = false;
-  // PDF 文档缓存：同一 URL 不重复 fetch+parse，命中则秒开
-  var _pdfDocCache = {};
-
-  // 动态加载 PDF.js（仅在未预加载时使用）
-  function loadPDFJS(pdfUrl) {
-    // 预加载已完成，直接渲染
-    if ((_pdfJsPreloaded || window._pdfJsPreloaded) && typeof pdfjsLib !== 'undefined') {
-      renderPDF(pdfUrl);
-      return;
-    }
-    // 已动态加载过，直接渲染
-    if (typeof pdfjsLib !== 'undefined') {
-      renderPDF(pdfUrl);
-      return;
-    }
-    var script = document.createElement('script');
-    script.src = (BASE ? BASE + '/' : '') + 'pdf.min.js';
-    script.onload = function () {
-      console.log('[PDF] pdf.min.js 加载成功');
-      // 指向本地同源 worker 文件
-      pdfjsLib.GlobalWorkerOptions.workerSrc = (BASE ? BASE + '/' : '') + 'pdf.worker.min.js';
-      renderPDF(pdfUrl);
-    };
-    script.onerror = function () {
-      showPDFError(t('pdf_error'));
-    };
-    document.head.appendChild(script);
-  }
-
-  // PDF.js 全局变量（保存当前 PDF 状态）
-  var _pdfDoc = null;
-  var _pdfPage = 1;
-  var _pdfTotal = 1;
-  var _pdfScale = 1.5;
-
-  // 渲染 PDF（带缓存：同一 URL 命中缓存则直接渲染，不重复 fetch+parse）
-  function renderPDF(pdfUrl) {
-    var loadingEl = document.getElementById('pdf-loading');
-    var canvas = document.getElementById('pdf-canvas');
-
-    if (typeof pdfjsLib === 'undefined') {
-      showPDFError(t('pdf_error'));
-      return;
-    }
-
-    // 检查缓存：同一 PDF 不重复解析，命中则秒开
-    if (_pdfDocCache[pdfUrl]) {
-      console.log('[PDF] 命中缓存:', pdfUrl);
-      _pdfDoc = _pdfDocCache[pdfUrl];
-      _pdfTotal = _pdfDoc.numPages;
-      _pdfPage = 1;
-      if (loadingEl) loadingEl.style.display = 'none';
-      if (canvas) canvas.style.display = 'block';
-      renderPDFPage(_pdfPage);
-      return;
-    }
-
-    // 显示加载中
-    if (loadingEl) {
-      loadingEl.textContent = t('pdf_loading');
-      loadingEl.style.cssText = 'color:var(--muted);font-size:.92rem;text-align:center;padding:3rem';
-      loadingEl.style.display = 'block';
-    }
-    if (canvas) canvas.style.display = 'none';
-
-    // 用 fetch 加载 PDF 为 ArrayBuffer，绕过 worker 的跨域问题
-    fetch(pdfUrl)
-      .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.arrayBuffer();
-      })
-      .then(function (buf) {
-        console.log('[PDF] fetch 成功，buffer 大小:', buf.byteLength);
-        return pdfjsLib.getDocument({ data: buf }).promise;
-      })
-      .then(function (pdf) {
-        console.log('[PDF] 解析成功，页数:', pdf.numPages);
-        _pdfDoc = pdf;
-        _pdfTotal = pdf.numPages;
-        _pdfPage = 1;
-
-        // 缓存解析后的 PDF 对象（同一 URL 再次打开直接用，不重复 fetch+parse）
-        _pdfDocCache[pdfUrl] = pdf;
-
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (canvas) canvas.style.display = 'block';
-
-        renderPDFPage(_pdfPage);
-      })
-      .catch(function (err) {
-        console.error('[PDF] 加载失败:', err);
-        showPDFError(t('pdf_error') + ': ' + (err.message || err.name || '未知错误'));
-      });
-  }
-
-  // 显示错误
-  function showPDFError(msg) {
-    var loadingEl = document.getElementById('pdf-loading');
-    if (loadingEl) {
-      loadingEl.textContent = '❌ ' + msg;
-      loadingEl.style.display = 'block';
-      loadingEl.style.color = 'var(--err)';
-      loadingEl.style.fontSize = '1rem';
-      // 移除旋转动画，避免和错误状态混淆
-      loadingEl.style.cssText = 'color:var(--err);font-size:1rem;text-align:center;padding:3rem;background:none';
-    }
-  }
-
-  // 渲染指定页
-  function renderPDFPage(pageNum) {
-    var canvas = document.getElementById('pdf-canvas');
-    var pageInfo = document.getElementById('pdf-page-info');
-    var prevBtn = document.getElementById('pdf-prev');
-    var nextBtn = document.getElementById('pdf-next');
-
-    if (!_pdfDoc || !canvas) return;
-
-    _pdfDoc.getPage(pageNum).then(function (page) {
-      var viewport = page.getViewport({ scale: _pdfScale });
-      var context = canvas.getContext('2d');
-
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      var renderContext = {
-        canvasContext: context,
-        viewport: viewport
-      };
-
-      page.render(renderContext);
-
-      // 更新页码显示
-      window._pdfPage = pageNum;
-      window._pdfTotal = _pdfTotal;
-      if (pageInfo) {
-        if (currentLang === 'en') {
-          pageInfo.textContent = pageNum + ' / ' + _pdfTotal;
-        } else {
-          pageInfo.textContent = '第 ' + pageNum + ' / ' + _pdfTotal + ' 页';
-        }
-      }
-      if (prevBtn) prevBtn.disabled = pageNum <= 1;
-      if (nextBtn) nextBtn.disabled = pageNum >= _pdfTotal;
-    });
-  }
-
-  // 翻页
-  window.pdfChangePage = function (delta) {
-    var newPage = _pdfPage + delta;
-    if (newPage >= 1 && newPage <= _pdfTotal) {
-      _pdfPage = newPage;
-      renderPDFPage(_pdfPage);
-    }
-  };
-
-  // 关闭 PDF 弹窗
-  window.closePDFModal = function () {
-    var modal = document.getElementById('pdf-modal');
-    if (modal) modal.classList.remove('show');
-    document.removeEventListener('keydown', pdfEscHandler);
-  };
-  function pdfEscHandler(e) { if (e.key === 'Escape') window.closePDFModal(); }
 
   // ===========================
   // 相册 (gallery.json → array)
