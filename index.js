@@ -133,11 +133,11 @@
   var DATA = BASE + '/data';
   // 判断是否为本地环境（localhost）
   var IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  // CDN 前缀：国内可访问的 GitHub 镜像 CDN
-  // 主用 Cloudflare（全球稳定），备用 ghproxy（国内加速）
-  var CDN_PRIMARY   = 'https://cdn.js.cloudflare.com/gh/LYT-6-666/my-blog@main';
-  var CDN_FALLBACK   = 'https://ghproxy.cn/gh/LYT-6-666/my-blog@main';   // 国内镜像备用
-  var CDN_THIRD     = 'https://mirror.ghproxy.com/gh/LYT-6-666/my-blog@main'; // 另一个国内镜像
+  // CDN 前缀：主用 jsDelivr + 多 CDN 备用（自动降级）
+  // 如果主 CDN 慢或失败，fallback 函数会自动尝试备用 CDN
+  var CDN_PRIMARY   = 'https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main';
+  var CDN_FALLBACK   = 'https://cdn.statically.io/gh/LYT-6-666/my-blog@main'; // Statically CDN 备用
+  var CDN_THIRD     = 'https://cdn.jswebcdn.com/gh/LYT-6-666/my-blog@main';  // 国内 jsDelivr 镜像
   // 获取图片完整 URL：本地用相对路径，线上用 CDN
   // 用户上传的都是 WebP 格式，直接返回 CDN URL，由 onerror 处理浏览器兼容性
   function getImgUrl(path, noWebp) {
