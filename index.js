@@ -137,25 +137,28 @@
   var CDN_PRIMARY   = 'https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main';
   var CDN_FALLBACK   = 'https://gcore.jsdelivr.net/gh/LYT-6-666/my-blog@main';  // Gcore CDN 备用
   var CDN_THIRD     = 'https://fastly.jsdelivr.net/gh/LYT-6-666/my-blog@main';   // Fastly 备用
-  // 检测浏览器 WebP 支持
-  var SUPPORT_WEBP = (function() {
-    try {
-      var c = document.createElement('canvas');
-      return c.toDataURL('image/webp').indexOf('data:image/webp') === 0;
-    } catch(e) { return false; }
-  })();
-  // 获取图片完整 URL：本地用相对路径，线上用 CDN（支持 WebP 自动探测）
-  // noWebp: 设为 true 时强制返回非 WebP URL
+  // 获取图片完整 URL：本地用相对路径，线上用 CDN
+  // 用户上传的都是 WebP 格式，直接返回 CDN URL，由 onerror 处理浏览器兼容性
   function getImgUrl(path, noWebp) {
     if (!path) return '';
     if (path.startsWith('http')) return path;
     var base = IS_LOCAL ? (BASE ? BASE + '/' + path : path) : (CDN_PRIMARY + '/' + path);
-    // 浏览器支持 WebP 时，尝试 .webp 版本（更小更快）
-    if (noWebp !== true && SUPPORT_WEBP && path.match(/\.(png|jpg|jpeg)$/i)) {
-      var webpUrl = base.replace(/\.(png|jpg|jpeg)$/i, '.webp');
-      return webpUrl;
-    }
+    // 图片已经是 WebP 格式（用户直接上传的），直接返回 CDN URL
+    // 如果浏览器不支持 WebP，onerror 会尝试 fallback
     return base;
+  }
+
+  // 获取图片的备用格式 URL（用于不支持 WebP 时降级）
+  // 注意：必须有原图（PNG/JPG）才能降级，否则无意义
+  function getImgFallbackUrl(path) {
+    if (!path) return '';
+    if (path.match(/\.webp$/i)) {
+      // WebP 图片：尝试转为 PNG 作为最后的备选
+      // 注意：如果没有原图，这个降级会失败，但可以防止浏览器空白
+      var base = path.startsWith('http') ? path : (CDN_PRIMARY + '/' + path);
+      return base.replace(/\.webp$/i, '.png');
+    }
+    return '';
   }
   // 获取文档完整 URL：本地用相对路径，线上用多 CDN 备用
   function getDocUrl(path, forFetch) {
@@ -205,22 +208,21 @@
     if (!url) {
       return '<span class="img-skeleton" style="display:flex;align-items:center;justify-content:center;font-size:2rem;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite">🖼️</span>';
     }
-    var webpUrl  = getImgUrl(url, false);       // 非 WebP 原图（CDN）
-    var tryWebp  = getImgUrl(url, false).replace(/\.(png|jpg|jpeg)$/i, '.webp');
-    var cdn2      = webpUrl.replace(CDN_PRIMARY, CDN_FALLBACK).replace(/\.(png|jpg|jpeg)$/i, '.webp');
-    var cdn3      = webpUrl.replace(CDN_PRIMARY, CDN_THIRD).replace(/\.(png|jpg|jpeg)$/i, '.webp');
-    var origCdn2  = webpUrl.replace(CDN_PRIMARY, CDN_FALLBACK);
-    var origCdn3  = webpUrl.replace(CDN_PRIMARY, CDN_THIRD);
-    // 拼接备用 URL 列表（WebP 优先，原图 + CDN 备用）
-    var fallbackData = [tryWebp, webpUrl, cdn2, origCdn2, cdn3, origCdn3].join('|');
-    var imgAttrs = 'data-fallback="' + esc(fallbackData) + '"';
+    var imgUrl = getImgUrl(url); // 直接获取 CDN URL
+    // 生成 CDN 备用 URL 列表
+    var cdn2 = imgUrl.replace(CDN_PRIMARY, CDN_FALLBACK);
+    var cdn3 = imgUrl.replace(CDN_PRIMARY, CDN_THIRD);
+    // 如果是 WebP，添加 PNG 降级（最后的备选）
+    var pngFallback = getImgFallbackUrl(url);
+    var fallbackUrls = [cdn2, cdn3, pngFallback].filter(function(u) { return u && u !== imgUrl; });
+    var fallbackData = fallbackUrls.join('|');
+    var fallbackAttr = fallbackData ? ' data-fallback="' + esc(fallbackData) + '"' : '';
     if (isFirstScreen) {
-      // 首屏：立即加载 WebP（如果失败，onerror 自动降级）
-      var src = SUPPORT_WEBP ? tryWebp : webpUrl;
-      return '<img src="' + src + '" alt="' + esc(alt) + '" class="' + (className || '') + ' img-fade-in" onload="this.classList.add(\'img-loaded\')" onerror="window._blogImgFallback(this)" ' + imgAttrs + '><span class="img-error" style="display:none;align-items:center;justify-content:center;font-size:2rem;background:#f5f5f5;color:#999;">⚠️ 加载失败</span>';
+      // 首屏：立即加载（如果失败，onerror 自动降级）
+      return '<img src="' + imgUrl + '" alt="' + esc(alt) + '" class="' + (className || '') + ' img-fade-in" onload="this.classList.add(\'img-loaded\')" onerror="window._blogImgFallback(this)" ' + fallbackAttr + '><span class="img-error" style="display:none;align-items:center;justify-content:center;font-size:2rem;background:#f5f5f5;color:#999;">⚠️ 加载失败</span>';
     } else {
       // 非首屏：data-src 由 IntersectionObserver 触发加载
-      return '<img data-src="' + (SUPPORT_WEBP ? tryWebp : webpUrl) + '" alt="' + esc(alt) + '" class="img-skeleton ' + (className || '') + '" style="opacity:0" onload="this.classList.remove(\'img-skeleton\');this.classList.add(\'img-loaded\');this.style.opacity=\'1\'" onerror="window._blogImgFallback(this)" ' + imgAttrs + '><span class="img-error" style="display:none;align-items:center;justify-content:center;font-size:2rem;background:#f5f5f5;color:#999;">⚠️ 加载失败</span>';
+      return '<img data-src="' + imgUrl + '" alt="' + esc(alt) + '" class="img-skeleton ' + (className || '') + '" style="opacity:0" onload="this.classList.remove(\'img-skeleton\');this.classList.add(\'img-loaded\');this.style.opacity=\'1\'" onerror="window._blogImgFallback(this)" ' + fallbackAttr + '><span class="img-error" style="display:none;align-items:center;justify-content:center;font-size:2rem;background:#f5f5f5;color:#999;">⚠️ 加载失败</span>';
     }
   }
 
@@ -817,7 +819,9 @@
         // 生成 CDN 备用 URL 列表
         var cdn2 = fullUrl.replace(CDN_PRIMARY, CDN_FALLBACK);
         var cdn3 = fullUrl.replace(CDN_PRIMARY, CDN_THIRD);
-        var fallbackData = [cdn2, cdn3].filter(function(u) { return u !== fullUrl; }).join('|');
+        var pngFallback = getImgFallbackUrl(p.icon_url);
+        var fallbackUrls = [cdn2, cdn3, pngFallback].filter(function(u) { return u && u !== fullUrl; });
+        var fallbackData = fallbackUrls.join('|');
         var fallbackAttr = fallbackData ? ' data-fallback="' + esc(fallbackData) + '"' : '';
         iconHtml = '<img src="' + fullUrl + '" alt="' + esc(p.title) + '" class="img-loaded"' + fallbackAttr + ' onerror="window._blogImgFallback(this)">';
       } else {
@@ -1208,7 +1212,9 @@
         // 生成 CDN 备用 URL 列表
         var cdn2 = imgSrc.replace(CDN_PRIMARY, CDN_FALLBACK);
         var cdn3 = imgSrc.replace(CDN_PRIMARY, CDN_THIRD);
-        var fallbackData = [cdn2, cdn3].filter(function(u) { return u !== imgSrc; }).join('|');
+        var pngFallback = getImgFallbackUrl(g.image_url);
+        var fallbackUrls = [cdn2, cdn3, pngFallback].filter(function(u) { return u && u !== imgSrc; });
+        var fallbackData = fallbackUrls.join('|');
         var fallbackAttr = fallbackData ? ' data-fallback="' + esc(fallbackData) + '"' : '';
 
         if (useLazy) {
