@@ -114,9 +114,10 @@
   // 判断是否为本地环境（localhost）
   var IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
   // CDN 配置：Gitee 优先（国内访问快）+ GitHub 备用
+  // 注意：需要先把文件同步到 Gitee 仓库，图片才能通过 Gitee CDN 加载
   var CDN_ALL = [
-    'https://gitee.com/LYT-6-666/my-blog/raw/main',  // Gitee 国内快（首选）
-    'https://ghproxy.net/https://github.com/LYT-6-666/my-blog/raw/main',  // GitHub 代理1
+    'https://gitee.com/LYT666999-luck/my-blog/raw/master',  // Gitee 国内快（首选）
+    'https://ghproxy.net/https://github.com/LYT-6-666/my-blog/raw/main',  // GitHub 代理
     'https://cdn.jsdelivr.net/gh/LYT-6-666/my-blog@main'  // jsDelivr（备用）
   ];
   var CDN_PRIMARY = CDN_ALL[0];  // 默认使用 Gitee
