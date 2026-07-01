@@ -845,49 +845,55 @@
   // 软件扫码下载 (config.json → software)
   // ===========================
   function renderSoftware(sw) {
-    if (!sw || !sw.enabled || !sw.qrcode) return;
-    
+    if (!sw || !sw.enabled) return;
+
+    // 兼容旧数据：如果只有 qrcode 单图，转成数组
+    var images = [];
+    if (sw.images && sw.images.length) {
+      images = sw.images;
+    } else if (sw.qrcode) {
+      images = [{ url: sw.qrcode, label: '' }];
+    }
+    if (!images.length) return;
+
     var section = document.getElementById('software');
     if (!section) return;
-    
+
     // 显示区域
     section.classList.remove('hidden');
-    
+
     // 显示导航栏的下载链接
     var navLink = document.getElementById('nav-software');
     if (navLink) navLink.classList.remove('hidden');
-    
+
     // 标题和描述
     var titleEl = document.getElementById('software-title');
     var descEl = document.getElementById('software-desc');
     var badgeEl = document.getElementById('software-badge');
     if (titleEl && sw.title) titleEl.textContent = sw.title;
     if (descEl && sw.desc) descEl.textContent = sw.desc;
-    
-    // 二维码图片
-    var qrcodeImg = document.getElementById('software-qrcode');
-    if (qrcodeImg && sw.qrcode) {
-      qrcodeImg.src = sw.qrcode;
-      qrcodeImg.alt = sw.title || '扫码下载';
-    }
-    
-    // 添加点击提示
-    var wrap = document.getElementById('software-qrcode-wrap');
-    if (wrap && !wrap.querySelector('.qrcode-tip')) {
-      var tip = document.createElement('div');
-      tip.className = 'qrcode-tip';
-      tip.textContent = '👆 点击可放大查看';
-      wrap.appendChild(tip);
-      
-      // 点击放大功能
-      wrap.addEventListener('click', function() {
+
+    // 渲染图片网格
+    var gallery = document.getElementById('software-gallery');
+    if (!gallery) return;
+    gallery.innerHTML = '';
+
+    images.forEach(function(img, idx) {
+      var url = img.url || img;
+      var label = img.label || '';
+      var card = document.createElement('div');
+      card.className = 'software-img-card';
+      card.innerHTML = '<img src="' + url + '" alt="' + (label || '图片 ' + (idx + 1)) + '" style="width:100%;height:200px;object-fit:cover;display:block">' +
+        (label ? '<div class="software-img-label">' + esc(label) + '</div>' : '');
+      card.addEventListener('click', function() {
         var modal = document.createElement('div');
         modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer';
-        modal.innerHTML = '<img src="' + sw.qrcode + '" style="max-width:90vw;max-height:90vh;border-radius:12px">';
+        modal.innerHTML = '<img src="' + url + '" style="max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5)">';
         modal.addEventListener('click', function() { modal.remove(); });
         document.body.appendChild(modal);
       });
-    }
+      gallery.appendChild(card);
+    });
   }
 
   // ===========================
