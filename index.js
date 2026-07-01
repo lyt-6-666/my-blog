@@ -737,14 +737,107 @@
       var pt = document.getElementById('page-title');
       if (pt) pt.textContent = site.title;
     }
-    var logo = document.getElementById('nav-logo');
+    var logo = document.getElementById('nav-logo-text');
     if (logo && site.logo) logo.textContent = site.logo;
+
+    // 导航栏 Logo 图标
+    var logoIcon = document.getElementById('nav-logo-icon');
+    if (logoIcon) {
+      var hasCustomIcon = site.logo_icon && site.logo_icon.trim();
+      if (hasCustomIcon) {
+        logoIcon.style.display = '';
+        renderIconInto(logoIcon, site.logo_icon, '');
+        // 如果 logo 文字开头是 emoji，去掉它避免重复
+        var logoText = site.logo || '';
+        var emojiPattern = /^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}\u{2B00}-\u{2BFF}\s]+/u;
+        var cleanText = logoText.replace(emojiPattern, '').trim();
+        if (logo && cleanText) {
+          logo.textContent = cleanText;
+        }
+      } else {
+        logoIcon.style.display = 'none';
+      }
+    }
+
     var footer = document.getElementById('footer-text');
     if (footer) footer.innerHTML = site.footer_bottom || '&copy; 2026';
-    
+
+    // 加载背景配置
+    if (cfg.background) {
+      renderBackground(cfg.background);
+    }
+
     // 加载软件扫码下载配置
     if (cfg.software) {
       renderSoftware(cfg.software);
+    }
+  }
+
+  // ===========================
+  // 背景渲染 (config.json → background)
+  // ===========================
+  function renderBackground(bg) {
+    var layer = document.getElementById('bg-image-layer');
+    var orb = document.querySelector('.bg-orb');
+    if (!layer) return;
+
+    var type = bg.type || 'default';
+
+    if (type === 'default') {
+      // 默认：隐藏图片层，显示光晕动画
+      layer.classList.remove('active');
+      layer.style.backgroundImage = 'none';
+      layer.style.backgroundColor = 'transparent';
+      if (orb) orb.classList.remove('hidden-bg');
+      document.body.classList.remove('has-bg-image');
+      return;
+    }
+
+    // 非默认模式：隐藏光晕，显示图片层，让各区域背景透明
+    if (orb) orb.classList.add('hidden-bg');
+    layer.classList.add('active');
+    document.body.classList.add('has-bg-image');
+
+    if (type === 'image' && bg.image_url) {
+      var url = getImgUrl(bg.image_url);
+      layer.style.backgroundImage = 'url("' + url + '")';
+      layer.style.backgroundColor = 'transparent';
+      var opacity = bg.opacity !== undefined ? bg.opacity : 0.15;
+      layer.style.opacity = opacity;
+      var blur = bg.blur || 0;
+      layer.style.filter = blur > 0 ? 'blur(' + blur + 'px)' : 'none';
+      // 模糊时需要放大避免边缘漏出
+      if (blur > 0) {
+        layer.style.transform = 'scale(1.05)';
+      } else {
+        layer.style.transform = 'none';
+      }
+    } else if (type === 'color' && bg.color) {
+      layer.style.backgroundImage = 'none';
+      layer.style.backgroundColor = bg.color;
+      layer.style.opacity = 1;
+      layer.style.filter = 'none';
+      layer.style.transform = 'none';
+    }
+  }
+
+  // ===========================
+  // 通用：图标渲染（支持 emoji / 图片URL / 空值回退）
+  // ===========================
+  function renderIconInto(container, iconValue, defaultEmoji) {
+    if (!container) return;
+    var val = iconValue && iconValue.trim() ? iconValue.trim() : '';
+    if (!val) {
+      container.textContent = defaultEmoji || '';
+      return;
+    }
+    // 判断是否为图片路径
+    var isImage = /\.(png|jpg|jpeg|gif|webp|svg|ico|bmp)$/i.test(val) || val.startsWith('http') || val.startsWith('images/') || val.startsWith('/images/');
+    if (isImage) {
+      var url = val.startsWith('http') ? val : (val.startsWith('/') ? val : getImgUrl(val));
+      container.innerHTML = '<img src="' + url + '" alt="icon">';
+    } else {
+      container.textContent = val;
     }
   }
 
@@ -801,6 +894,19 @@
   // Hero (hero.json)
   // ===========================
   function renderHero(hero) {
+    // Hero 图标
+    var heroIconEl = document.getElementById('hero-avatar-icon');
+    var heroAvatar = document.getElementById('hero-avatar');
+    if (heroIconEl) {
+      renderIconInto(heroIconEl, hero.icon, '🔧');
+      // 判断是否为图片，图片模式下去掉渐变背景
+      var val = (hero.icon || '').trim();
+      var isImage = val && (/\.(png|jpg|jpeg|gif|webp|svg|ico|bmp)$/i.test(val) || val.startsWith('http') || val.startsWith('images/') || val.startsWith('/images/'));
+      if (heroAvatar) {
+        heroAvatar.classList.toggle('has-image', isImage);
+      }
+    }
+
     // 角标
     var badgeEl = document.getElementById('hero-badge');
     var badgeText = document.getElementById('badge-text');
