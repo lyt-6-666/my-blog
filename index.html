@@ -47,6 +47,18 @@
   img{max-width:100%;display:block}
   ul{list-style:none}
 
+  /* 背景图片层 */
+  #bg-image-layer{position:fixed;inset:0;z-index:0;pointer-events:none;background-size:cover;background-position:center;background-repeat:no-repeat;transition:opacity .5s,background-image .5s;opacity:0}
+  #bg-image-layer.active{opacity:1}
+  .bg-orb.hidden-bg{display:none}
+
+  /* 自定义背景模式：让 body 和各区域背景透明，使背景图片透出来 */
+  body.has-bg-image{background:transparent !important}
+  body.has-bg-image .software-section,
+  body.has-bg-image .gallery-section,
+  body.has-bg-image .about-section,
+  body.has-bg-image footer{background:transparent !important}
+
   /* 背景光晕 */
   .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;
     background:radial-gradient(circle at 20% 50%,var(--glow) 0%,transparent 50%),
@@ -70,7 +82,9 @@
     border-bottom:1px solid var(--border);transition:all .3s}
   nav.scrolled{padding:.6rem 2rem;box-shadow:0 1px 3px rgba(0,0,0,.06)}
   .nav-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
-  .logo{font-size:1.3rem;font-weight:700;background:var(--g1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .logo{font-size:1.3rem;font-weight:700;background:var(--g1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:flex;align-items:center;gap:8px}
+  .logo-icon{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;font-size:1.4rem;line-height:1;-webkit-text-fill-color:initial}
+  .logo-icon img{width:100%;height:100%;object-fit:contain;border-radius:8px}
   .nav-links{display:flex;gap:2rem}
   .nav-links a{color:var(--text2);font-size:.9rem;font-weight:500;transition:color .3s;position:relative}
   .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:2px;background:var(--accent);border-radius:1px;transition:width .3s}
@@ -323,7 +337,11 @@
   /* ===== Hero ===== */
   .hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:7rem 2rem 4rem;position:relative;overflow:hidden}
   .hero-content{max-width:780px;text-align:center;position:relative}
-  .hero-avatar{width:110px;height:110px;margin:0 auto 2rem;border-radius:30px;background:var(--g1);display:flex;align-items:center;justify-content:center;font-size:3rem;box-shadow:0 8px 30px var(--glow)}
+  .hero-avatar{width:110px;height:110px;margin:0 auto 2rem;border-radius:30px;background:var(--g1);display:flex;align-items:center;justify-content:center;font-size:3rem;box-shadow:0 8px 30px var(--glow);overflow:hidden}
+  .hero-avatar-icon{display:inline-flex;align-items:center;justify-content:center;width:100%;height:100%}
+  .hero-avatar-icon img{width:100%;height:100%;object-fit:cover;border-radius:30px}
+  .hero-avatar.has-image{background:transparent;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+  .hero-avatar.has-image::before{display:none}
   @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
   .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--card);border:1px solid var(--border);padding:.4rem 1rem;border-radius:50px;font-size:.82rem;color:var(--text2);margin-bottom:1.8rem}
   .hero-badge .dot{width:8px;height:8px;background:var(--ok);border-radius:50%;animation:pulse 2s infinite}
@@ -559,6 +577,7 @@
   </style>
 </head>
 <body>
+  <div id="bg-image-layer"></div>
   <div class="bg-orb"></div>
   <div id="scroll-bar"></div>
   <button id="back-top" title="回到顶部">↑</button>
@@ -572,7 +591,10 @@
   <!-- 导航 -->
   <nav id="navbar">
     <div class="nav-inner">
-      <a href="#home" class="logo" id="nav-logo">我的博客</a>
+      <a href="#home" class="logo" id="nav-logo-wrap">
+        <span class="logo-icon" id="nav-logo-icon">🔧</span>
+        <span id="nav-logo-text">我的博客</span>
+      </a>
       <ul class="nav-links" id="nav-links">
         <li><a href="#home" data-i18n="nav_home">首页</a></li>
         <li><a href="#projects" data-i18n="nav_projects">作品</a></li>
@@ -601,7 +623,9 @@
     <!-- Hero -->
     <section id="home" class="hero">
       <div class="hero-content fade-in">
-        <div class="hero-avatar" id="hero-avatar">🔧</div>
+        <div class="hero-avatar" id="hero-avatar">
+          <span class="hero-avatar-icon" id="hero-avatar-icon">🔧</span>
+        </div>
         <div class="hero-badge" id="hero-badge" style="display:none"><span class="dot"></span><span id="badge-text"></span></div>
         <h1 id="hero-title"></h1>
         <p class="hero-desc" id="hero-desc"></p>
