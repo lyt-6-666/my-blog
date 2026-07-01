@@ -799,19 +799,52 @@
     document.body.classList.add('has-bg-image');
 
     if (type === 'image' && bg.image_url) {
-      var url = getImgUrl(bg.image_url);
-      layer.style.backgroundImage = 'url("' + url + '")';
+      // 先应用样式（透明度、模糊等），图片异步加载
       layer.style.backgroundColor = 'transparent';
       var opacity = bg.opacity !== undefined ? bg.opacity : 0.15;
       layer.style.opacity = opacity;
       var blur = bg.blur || 0;
       layer.style.filter = blur > 0 ? 'blur(' + blur + 'px)' : 'none';
-      // 模糊时需要放大避免边缘漏出
       if (blur > 0) {
         layer.style.transform = 'scale(1.05)';
       } else {
         layer.style.transform = 'none';
       }
+      // 构建候选 URL 列表：主 CDN + 备用 CDN + GitHub Pages 直链兜底
+      // 背景 style.backgroundImage 无法像 <img> 那样用 data-fallback，需手动逐个尝试
+      var bgCandidates = [];
+      var bgPrimary = getImgUrl(bg.image_url);
+      bgCandidates.push(bgPrimary);
+      var bgFallbacks = getImgFallbackUrls(bg.image_url);
+      for (var bfi = 0; bfi < bgFallbacks.length; bfi++) {
+        if (bgCandidates.indexOf(bgFallbacks[bfi]) === -1) bgCandidates.push(bgFallbacks[bfi]);
+      }
+      // 最后兜底：GitHub Pages 直链（BASE + path）
+      if (!IS_LOCAL) {
+        var bgDirect = (BASE ? BASE + '/' + bg.image_url : bg.image_url);
+        if (bgCandidates.indexOf(bgDirect) === -1) bgCandidates.push(bgDirect);
+      }
+      // 逐个尝试加载，用第一个成功的 URL 设置背景
+      var bgTryIdx = 0;
+      function tryLoadBgImg() {
+        if (bgTryIdx >= bgCandidates.length) {
+          console.warn('❌ 背景图片所有 CDN 均失败:', bg.image_url);
+          return;
+        }
+        var candUrl = bgCandidates[bgTryIdx];
+        var testImg = new Image();
+        testImg.onload = function() {
+          layer.style.backgroundImage = 'url("' + candUrl + '")';
+          console.log('✅ 背景图片加载成功:', candUrl);
+        };
+        testImg.onerror = function() {
+          console.log('⚠️ 背景图片 CDN 失败，尝试下一个:', candUrl);
+          bgTryIdx++;
+          tryLoadBgImg();
+        };
+        testImg.src = candUrl;
+      }
+      tryLoadBgImg();
     } else if (type === 'color' && bg.color) {
       layer.style.backgroundImage = 'none';
       layer.style.backgroundColor = bg.color;
