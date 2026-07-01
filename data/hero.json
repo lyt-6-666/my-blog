@@ -11,12 +11,12 @@
   "btn_2_link": "#articles",
   "stats": [
     {
-      "number": 300,
+      "number": 500,
       "suffix": "+",
       "label": "活跃用户"
     },
     {
-      "number": 10,
+      "number": 20,
       "suffix": "+",
       "label": "功能模块"
     },
