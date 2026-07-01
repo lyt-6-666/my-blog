@@ -868,7 +868,15 @@
     var isImage = /\.(png|jpg|jpeg|gif|webp|svg|ico|bmp)$/i.test(val) || val.startsWith('http') || val.startsWith('images/') || val.startsWith('/images/');
     if (isImage) {
       var url = val.startsWith('http') ? val : (val.startsWith('/') ? val : getImgUrl(val));
-      container.innerHTML = '<img src="' + url + '" alt="icon">';
+      // 添加 CDN 回退支持
+      var fallbacks = val.startsWith('http') ? [] : getImgFallbackUrls(val);
+      // 本地环境也加 GitHub Pages 直链兜底（以防万一）
+      if (!val.startsWith('http') && !IS_LOCAL) {
+        var directUrl = (BASE ? BASE + '/' + val : val);
+        if (fallbacks.indexOf(directUrl) === -1) fallbacks.push(directUrl);
+      }
+      var fallbackAttr = fallbacks.length ? ' data-fallback="' + esc(fallbacks.join('|')) + '"' : '';
+      container.innerHTML = '<img src="' + url + '" alt="icon"' + fallbackAttr + ' onerror="window._blogImgFallback(this)">';
     } else {
       container.textContent = val;
     }
