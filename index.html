@@ -455,6 +455,14 @@
   /* ===== 扫码下载区域 ===== */
   .software-section{padding:60px 0;background:var(--bg2);transition:background .4s}
   .software-content{display:flex;justify-content:center;margin-top:30px}
+  .software-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;max-width:900px;margin:30px auto 0;width:100%}
+  .software-img-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:transform .3s,box-shadow .3s;position:relative}
+  .software-img-card:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(0,0,0,.1)}
+  .software-img-card img{width:100%;height:200px;object-fit:cover;display:block}
+  .software-img-label{padding:10px 12px;font-size:.85rem;color:var(--text2);text-align:center;background:var(--card)}
+  .qrcode-wrap{cursor:pointer;position:relative;display:inline-block;text-align:center}
+  .qrcode-wrap img{width:200px;height:200px;object-fit:cover;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+  .qrcode-tip{margin-top:10px;font-size:.8rem;color:var(--muted)}
   .qrcode-wrap{background:#fff;border-radius:16px;padding:24px;box-shadow:var(--sh);
     transition:all .3s;cursor:pointer}
   .qrcode-wrap:hover{transform:translateY(-5px);box-shadow:var(--sh-lg)}
@@ -655,9 +663,7 @@
           <p class="sec-desc" id="software-desc">长按识别二维码，加入交流群获取最新版本</p>
         </div>
         <div class="software-content">
-          <div class="qrcode-wrap" id="software-qrcode-wrap">
-            <img id="software-qrcode" src="" alt="扫码下载">
-          </div>
+          <div class="software-gallery" id="software-gallery"></div>
         </div>
       </div>
     </section>
