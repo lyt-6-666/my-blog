@@ -1733,6 +1733,19 @@
     var html = marked.parse(text, { breaks: true, gfm: true });
     // 所有链接新窗口打开
     html = html.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
+    // 处理图片路径：相对路径转 CDN URL
+    html = html.replace(/<img\s+([^>]*?)src="([^"]+)"([^>]*)>/g, function(match, before, src, after) {
+      // 跳过已经是 http 开头的
+      if (src.startsWith('http') || src.startsWith('data:')) return match;
+      // 跳过空路径
+      if (!src || src === '#') return match;
+      // 获取 CDN URL
+      var fullUrl = getImgUrl(src);
+      // 生成备用 CDN
+      var fallbacks = getImgFallbackUrls(src);
+      var fallbackAttr = fallbacks.length ? ' data-fallback="' + esc(fallbacks.join('|')) + '"' : '';
+      return '<img ' + before + 'src="' + fullUrl + '"' + after + fallbackAttr + ' onerror="window._blogImgFallback(this)">';
+    });
     return html;
   }
 
