@@ -20,7 +20,7 @@
     "logo": "🔧 不加班的小刘",
     "footer_bottom": "© 2026 不加班的小刘",
     "footer_desc": "CAD二次开发 · 效率工具",
-    "logo_icon": ""
+    "logo_icon": "images/logo_icon.png"
   },
   "background": {
     "type": "image",
