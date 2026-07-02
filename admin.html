@@ -93,6 +93,9 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
 .tags-wrap .tag-item{background:var(--accent);color:#fff;padding:2px 8px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:4px}
 .tags-wrap .tag-item .x{cursor:pointer;font-weight:700}
 .tags-wrap input{border:none;outline:none;flex:1;min-width:80px;font-size:13px;background:transparent}
+/* 快速选择的历史标签 */
+#existing-tags .tag-item{background:#f3f4f6;color:var(--text);border:1px dashed var(--border);padding:3px 10px;border-radius:20px;font-size:12px;display:inline-flex;align-items:center;gap:4px;transition:all .2s}
+#existing-tags .tag-item:hover:not([style*="opacity"]){background:var(--accent);color:#fff;border-color:var(--accent);border-style:solid}
 
 /* ===== 预览框 ===== */
 .preview-box{border:1px solid var(--border);border-radius:8px;padding:14px;background:#fafafa;max-height:350px;overflow:auto;font-size:13px;line-height:1.8}
@@ -154,8 +157,11 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
 
 <!-- 顶部同步栏 -->
 <div class="sync-bar">
-  <span class="sync-hint">💡 本地修改后，点击同步到 GitHub 部署</span>
-  <button class="btn btn-sync" id="btn-sync" onclick="syncToGitHub()">🚀 同步到 GitHub</button>
+  <span class="sync-hint">💡 本地修改后，先预览效果，满意后再同步到 GitHub</span>
+  <div style="display:flex;gap:10px;align-items:center">
+    <button class="btn btn-preview" id="btn-preview" onclick="previewBlog()">👁️ 预览博客</button>
+    <button class="btn btn-sync" id="btn-sync" onclick="syncToGitHub()">🚀 同步到 GitHub</button>
+  </div>
 </div>
 
 <!-- 同步流程面板 -->
@@ -183,6 +189,8 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
 .btn-sync{background:#10b981;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-size:14px;cursor:pointer;font-weight:500;transition:all 0.2s}
 .btn-sync:hover{background:#059669;transform:translateY(-1px)}
 .btn-sync:disabled{background:#6b7280;cursor:not-allowed;transform:none}
+.btn-preview{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:8px 20px;border-radius:6px;font-size:14px;cursor:pointer;font-weight:500;transition:all 0.2s}
+.btn-preview:hover{background:rgba(255,255,255,0.25);transform:translateY(-1px)}
 #cms-body{margin-top:48px}
 
 /* ===== 同步流程面板 ===== */
@@ -225,6 +233,50 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
 }
 .sync-file-error{font-size:11px;color:#b91c1c;margin-top:3px;padding:4px 8px;background:#fef2f2;border-radius:4px;word-break:break-all;line-height:1.4}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ===== 操作日志 ===== */
+.log-item{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:flex-start;transition:background .15s}
+.log-item:hover{background:#f9fafb}
+.log-item:last-child{border-bottom:none}
+.log-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;background:#f3f4f6}
+.log-body{flex:1;min-width:0}
+.log-action{font-weight:600;font-size:13px;color:var(--text);margin-bottom:3px}
+.log-detail{font-size:12px;color:var(--text2);word-break:break-all;line-height:1.5;max-height:80px;overflow-y:auto}
+.log-meta{font-size:11px;color:#9ca3af;margin-top:4px;display:flex;gap:10px;flex-wrap:wrap}
+.log-tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.log-tag-save{background:#eff6ff;color:#3b82f6}
+.log-tag-upload{background:#ecfdf5;color:#10b981}
+.log-tag-sync_start{background:#fef3c7;color:#d97706}
+.log-tag-sync_done{background:#ecfdf5;color:#059669}
+.log-tag-logs_clear{background:#fef2f2;color:#ef4444}
+.log-tag-save_error{background:#fef2f2;color:#ef4444}
+.log-empty{padding:40px;text-align:center;color:var(--text2);font-size:13px}
+
+/* ===== 文件管理 ===== */
+.file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.file-card{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card);transition:all .2s;position:relative}
+.file-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);transform:translateY(-2px)}
+.file-thumb{height:140px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.file-thumb img{width:100%;height:100%;object-fit:cover}
+.file-thumb .file-ext{font-size:28px;font-weight:700;color:#9ca3af;text-transform:uppercase}
+.file-info{padding:10px 12px}
+.file-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.file-meta{font-size:11px;color:var(--text2);display:flex;justify-content:space-between;align-items:center}
+.file-del-btn{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(239,68,68,.9);color:#fff;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.file-card:hover .file-del-btn{opacity:1}
+.file-del-btn:hover{background:#ef4444;transform:scale(1.1)}
+
+/* ===== 数据备份 ===== */
+.backup-list{display:flex;flex-direction:column;gap:10px}
+.backup-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--card);transition:all .2s}
+.backup-item:hover{box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.backup-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.backup-icon.manual{background:#eff6ff;color:#3b82f6}
+.backup-icon.auto{background:#f3f4f6;color:#6b7280}
+.backup-body{flex:1;min-width:0}
+.backup-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;word-break:break-all}
+.backup-meta{font-size:11px;color:var(--text2);display:flex;gap:14px;flex-wrap:wrap}
+.backup-actions{display:flex;gap:6px;flex-shrink:0}
 </style>
 
 <!-- 管理后台主体 -->
@@ -238,7 +290,11 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
       <a onclick="switchTab('articles',this)">📄 文章管理</a>
       <a onclick="switchTab('about',this)">👤 关于我</a>
       <a onclick="switchTab('contact',this)">📞 联系方式</a>
+      <a onclick="switchTab('software',this)">📥 软件下载</a>
       <a onclick="switchTab('settings',this)">⚙️ 站点设置</a>
+      <a onclick="switchTab('logs',this)">📋 操作日志</a>
+      <a onclick="switchTab('files',this)">🗂️ 文件管理</a>
+      <a onclick="switchTab('backup',this)">💾 数据备份</a>
     </nav>
     <div class="sidebar-bottom">
       <a onclick="logout()">🚪 退出登录</a>
@@ -250,15 +306,32 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
     <div id="tab-hero" class="tab-content">
       <div class="page-title">🎯 主页 Hero 区域</div>
       <div class="card">
+        <div class="form-field">
+          <label>Hero 图标（支持 emoji 或图片）</label>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="text" id="hero-icon" placeholder="🔧 或 images/xxx.webp" style="flex:1">
+            <label class="btn btn-outline" style="cursor:pointer;white-space:nowrap">
+              📤 上传图片
+              <input type="file" accept="image/*" onchange="uploadHeroIcon(this)" style="display:none">
+            </label>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:10px;align-items:center">
+            <div id="hero-icon-preview" style="width:60px;height:60px;border-radius:18px;background:var(--g1);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 4px 15px var(--glow)">🔧</div>
+            <div style="font-size:12px;color:var(--text2)">留空或填 emoji 文字使用默认扳手图标<br>上传图片后会自动填充图片路径</div>
+          </div>
+        </div>
         <div class="form-row">
           <div class="form-field"><label>角标文字</label><input type="text" id="hero-badge" placeholder="CAD二次开发 · 效率工具"></div>
-          <div class="form-field"><label>主标题第1段</label><input type="text" id="hero-h1" placeholder="让CAD操作"></div>
         </div>
-        <div class="form-row">
-          <div class="form-field"><label>主标题高亮词</label><input type="text" id="hero-h2" placeholder="更高效"></div>
-          <div class="form-field"><label>主标题第3段</label><input type="text" id="hero-h3" placeholder="让工作回归"></div>
+        <div style="margin-bottom:8px;font-size:13px;color:var(--text2)">主标题共两行，每行可设置一个高亮词（高亮词自动渲染为渐变色）</div>
+        <div class="form-row" style="align-items:flex-end;">
+          <div class="form-field" style="flex:2"><label>第一行文字</label><input type="text" id="hero-line1" placeholder="让CAD操作 更高效"></div>
+          <div class="form-field" style="flex:1"><label>第一行高亮词</label><input type="text" id="hero-hl1" placeholder="更高效"></div>
         </div>
-        <div class="form-field"><label>主标题第4段</label><input type="text" id="hero-h4" placeholder="自动化"></div>
+        <div class="form-row" style="align-items:flex-end;">
+          <div class="form-field" style="flex:2"><label>第二行文字</label><input type="text" id="hero-line2" placeholder="让工作回归 自动化"></div>
+          <div class="form-field" style="flex:1"><label>第二行高亮词</label><input type="text" id="hero-hl2" placeholder="自动化"></div>
+        </div>
         <div class="form-field"><label>描述文字</label><textarea id="hero-desc" rows="3" placeholder="页面描述..."></textarea></div>
         <div class="form-row">
           <div class="form-field"><label>按钮1文字</label><input type="text" id="hero-btn1-text" placeholder="查看作品"></div>
@@ -335,11 +408,7 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
         <div class="form-row">
           <div class="form-field"><label>图片标题</label><input type="text" id="gal-title" placeholder="图片标题"></div>
           <div class="form-field"><label>分类</label>
-            <select id="gal-category">
-              <option value="screenshot">软件截图</option>
-              <option value="dev">开发瞬间</option>
-              <option value="design">设计稿</option>
-              <option value="life">生活记录</option>
+            <select id="gal-category"></select>
             </select>
           </div>
         </div>
@@ -372,11 +441,7 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
         <div class="form-row">
           <div class="form-field"><label>文章标题</label><input type="text" id="art-title" placeholder="文章标题"></div>
           <div class="form-field"><label>分类</label>
-            <select id="art-category">
-              <option value="入门教程">入门教程</option>
-              <option value="实战技巧">实战技巧</option>
-              <option value="开发笔记">开发笔记</option>
-              <option value="工具分享">工具分享</option>
+            <select id="art-category"></select>
             </select>
           </div>
         </div>
@@ -394,6 +459,7 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
             <div id="art-tags-container"></div>
             <input type="text" id="art-tag-input" placeholder="输入标签后回车" onkeydown="if(event.key==='Enter'){event.preventDefault();addArtTag()}">
           </div>
+          <div id="existing-tags" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
         </div>
         <div class="form-field">
           <label>正文（Markdown）</label>
@@ -457,6 +523,32 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
             </div>
             <div id="about-emoji-mode">
               <input type="text" id="about-avatar" placeholder="👨💻" style="font-size:24px;text-align:center;">
+              <div style="margin-top:10px;">
+                <label style="display:block;font-size:13px;color:var(--text2);margin-bottom:6px;">图标背景颜色</label>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+                  <label title="主题渐变色（默认）" style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;">
+                    <input type="radio" name="icon-bg" value="" id="icon-bg-default" style="width:auto" checked>
+                    <span style="display:inline-block;width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:2px solid transparent;vertical-align:middle"></span>
+                    默认渐变
+                  </label>
+                  <label title="靛蓝" style="cursor:pointer;"><input type="radio" name="icon-bg" value="#4f46e5" style="display:none"><span style="display:inline-block;width:28px;height:28px;border-radius:8px;background:#4f46e5;cursor:pointer;border:2px solid transparent" onclick="selectIconBg(this,'#4f46e5')"></span></label>
+                  <label title="紫色" style="cursor:pointer;"><input type="radio" name="icon-bg" value="#7c3aed" style="display:none"><span style="display:inline-block;width:28px;height:28px;border-radius:8px;background:#7c3aed;cursor:pointer;border:2px solid transparent" onclick="selectIconBg(this,'#7c3aed')"></span></label>
+                  <label title="玫瑰红" style="cursor:pointer;"><input type="radio" name="icon-bg" value="#e11d48" style="display:none"><span style="display:inline-block;width:28px;height:28px;border-radius:8px;background:#e11d48;cursor:pointer;border:2px solid transparent" onclick="selectIconBg(this,'#e11d48')"></span></label>
+                  <label title="橙色" style="cursor:pointer;"><input type="radio" name="icon-bg" value="#ea580c" style="display:none"><span style="display:inline-block;width:28px;height:28px;border-radius:8px;background:#ea580c;cursor:pointer;border:2px solid transparent" onclick="selectIconBg(this,'#ea580c')"></span></label>
+                  <label title="绿色" style="cursor:pointer;"><input type="radio" name="icon-bg" value="#059669" style="display:none"><span style="display:inline-block;width:28px;height:28px;border-radius:8px;background:#059669;cursor:pointer;border:2px solid transparent" onclick="selectIconBg(this,'#059669')"></span></label>
+                  <label title="天蓝" style="cursor:pointer;"><input type="radio" name="icon-bg" value="#0284c7" style="display:none"><span style="display:inline-block;width:28px;height:28px;border-radius:8px;background:#0284c7;cursor:pointer;border:2px solid transparent" onclick="selectIconBg(this,'#0284c7')"></span></label>
+                  <label title="深灰" style="cursor:pointer;"><input type="radio" name="icon-bg" value="#374151" style="display:none"><span style="display:inline-block;width:28px;height:28px;border-radius:8px;background:#374151;cursor:pointer;border:2px solid transparent" onclick="selectIconBg(this,'#374151')"></span></label>
+                  <label title="自定义颜色" style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:12px;">
+                    <input type="color" id="icon-bg-custom" value="#6366f1" style="width:28px;height:28px;border:none;border-radius:8px;padding:0;cursor:pointer;background:none" onchange="selectIconBgCustom(this.value)">
+                    自定义
+                  </label>
+                </div>
+                <input type="hidden" id="about-icon-bg" value="">
+                <div id="icon-bg-preview" style="margin-top:8px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)">
+                  <span>预览：</span>
+                  <span id="icon-bg-preview-box" style="display:inline-flex;width:60px;height:60px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);align-items:center;justify-content:center;font-size:28px;box-shadow:0 4px 12px rgba(0,0,0,0.15)">👤</span>
+                </div>
+              </div>
             </div>
             <div id="about-image-mode" class="hidden">
               <input type="file" id="about-avatar-file" accept="image/png,image/jpg,image/jpeg,image/gif,image/svg+xml,image/webp" onchange="uploadAvatar(this)">
@@ -496,6 +588,47 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
       </div>
     </div>
 
+    <!-- ===== 软件下载 ===== -->
+    <div id="tab-software" class="tab-content hidden">
+      <div class="page-title">📥 软件下载</div>
+      <div class="card">
+        <div class="card-title">基本设置</div>
+        <div class="form-field">
+          <label>标题文字</label>
+          <input type="text" id="sw-title" placeholder="扫码下载" value="扫码下载">
+        </div>
+        <div class="form-field">
+          <label>描述文字</label>
+          <input type="text" id="sw-desc" placeholder="长按识别二维码，加入交流群获取最新版本" value="长按识别二维码，加入交流群获取最新版本">
+        </div>
+        <div class="form-field">
+          <label>功能开关</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="sw-enabled" checked style="width:auto;zoom:1.2">
+            <span>在首页显示下载区域</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">🖼️ 图片管理</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">支持上传多张图片，可添加标签说明，点击可放大预览</div>
+
+        <div id="sw-image-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:16px"></div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <label class="btn btn-primary" style="cursor:pointer">
+            📤 上传图片
+            <input type="file" accept="image/*" multiple onchange="uploadSwImages(this)" style="display:none">
+          </label>
+          <button class="btn btn-outline" onclick="addSwImageManual()">➕ 手动添加图片链接</button>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-top:8px">💡 可多选上传，每张图片可设置标签文字</div>
+      </div>
+
+      <div class="btn-group" style="margin-top:20px"><button class="btn btn-primary" onclick="saveSoftware()">💾 保存设置</button></div>
+    </div>
+
     <!-- ===== 设置 ===== -->
     <div id="tab-settings" class="tab-content hidden">
       <div class="page-title">⚙️ 站点设置</div>
@@ -503,9 +636,195 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
         <div class="card-title">站点信息</div>
         <div class="form-field"><label>网站标题</label><input type="text" id="site-title" placeholder="网站标题"></div>
         <div class="form-field"><label>Logo 文字</label><input type="text" id="site-logo" placeholder="🔧 不加班的小刘"></div>
+        <div class="form-field">
+          <label>Logo 图标（支持 emoji 或图片）</label>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="text" id="site-logo-icon" placeholder="🔧 或 images/xxx.webp" style="flex:1">
+            <label class="btn btn-outline" style="cursor:pointer;white-space:nowrap">
+              📤 上传图片
+              <input type="file" accept="image/*" onchange="uploadLogoIcon(this)" style="display:none">
+            </label>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:10px;align-items:center">
+            <div id="logo-icon-preview" style="width:48px;height:48px;border-radius:12px;background:var(--g1);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 12px var(--glow)">🔧</div>
+            <div style="font-size:12px;color:var(--text2)">留空或填 emoji 文字使用默认图标<br>上传图片后会自动填充图片路径</div>
+          </div>
+        </div>
         <div class="form-field"><label>Footer 底部文字</label><input type="text" id="site-footer" placeholder="© 2026 ..."></div>
         <div class="form-field"><label>Footer 描述</label><textarea id="site-desc" rows="2" placeholder="Footer描述..."></textarea></div>
         <div class="btn-group"><button class="btn btn-primary" onclick="saveSite()">💾 保存站点设置</button></div>
+      </div>
+
+      <!-- ===== 背景设置 ===== -->
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">🎨 背景设置</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">设置博客首页的背景效果，支持默认光晕、自定义图片、纯色背景</div>
+        <div class="form-field">
+          <label>背景类型</label>
+          <div id="bg-type-tabs" style="display:flex;gap:4px;">
+            <button type="button" class="icon-mode-btn active" onclick="switchBgType('default')">✨ 默认光晕</button>
+            <button type="button" class="icon-mode-btn" onclick="switchBgType('image')">🖼️ 图片背景</button>
+            <button type="button" class="icon-mode-btn" onclick="switchBgType('color')">🎨 纯色背景</button>
+          </div>
+        </div>
+
+        <!-- 图片背景设置 -->
+        <div id="bg-image-settings" class="hidden">
+          <div class="form-field">
+            <label>背景图片</label>
+            <div style="display:flex;gap:10px;align-items:center">
+              <input type="text" id="bg-image-url" placeholder="images/xxx.webp（上传后自动填充）" style="flex:1">
+              <label class="btn btn-outline" style="cursor:pointer;white-space:nowrap">
+                📤 上传图片
+                <input type="file" accept="image/*" onchange="uploadBgImage(this)" style="display:none">
+              </label>
+            </div>
+            <div id="bg-image-preview" style="margin-top:10px"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>透明度: <span id="bg-opacity-val">15%</span></label>
+              <input type="range" id="bg-opacity" min="5" max="100" value="15" oninput="updateBgOpacityLabel(this.value)" style="width:100%">
+            </div>
+            <div class="form-field">
+              <label>模糊度: <span id="bg-blur-val">0px</span></label>
+              <input type="range" id="bg-blur" min="0" max="20" value="0" oninput="updateBgBlurLabel(this.value)" style="width:100%">
+            </div>
+          </div>
+        </div>
+
+        <!-- 纯色背景设置 -->
+        <div id="bg-color-settings" class="hidden">
+          <div class="form-field">
+            <label>背景颜色</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="color" id="bg-color" value="#1a1a2e" style="width:60px;height:40px;border:1px solid var(--border);border-radius:8px;cursor:pointer;padding:0">
+              <input type="text" id="bg-color-text" value="#1a1a2e" placeholder="#1a1a2e" style="flex:1" oninput="syncBgColor(this.value)">
+            </div>
+          </div>
+        </div>
+
+        <!-- 预览 -->
+        <div id="bg-preview-wrap" style="margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid var(--border);height:160px;position:relative;background:#f0f0f0">
+          <div id="bg-preview-inner" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#999;font-size:14px">选择背景类型后预览效果</div>
+        </div>
+
+        <div class="btn-group" style="margin-top:12px;">
+          <button class="btn btn-primary" onclick="saveBackground()">💾 保存背景设置</button>
+          <button class="btn btn-outline" onclick="resetBackground()">🔄 恢复默认</button>
+        </div>
+      </div>
+
+      <!-- ===== 分类管理 ===== -->
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">📂 分类管理</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">管理文章和相册的分类，支持添加、删除、修改</div>
+
+        <!-- 文章分类 -->
+        <div style="margin-bottom:16px;">
+          <div style="font-weight:600;margin-bottom:8px;">📝 文章分类</div>
+          <div id="article-cat-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;"></div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="new-article-cat" placeholder="输入新分类名称" style="flex:1;">
+            <button class="btn btn-secondary" onclick="addCategory('article')">添加</button>
+          </div>
+        </div>
+
+        <!-- 相册分类 -->
+        <div>
+          <div style="font-weight:600;margin-bottom:8px;">🖼️ 相册分类</div>
+          <div id="gallery-cat-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;"></div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="new-gallery-cat" placeholder="输入新分类名称" style="flex:1;">
+            <button class="btn btn-secondary" onclick="addCategory('gallery')">添加</button>
+          </div>
+        </div>
+
+        <div class="btn-group" style="margin-top:16px;"><button class="btn btn-primary" onclick="saveCategories()">💾 保存分类</button></div>
+      </div>
+    </div>
+
+    <!-- ===== 操作日志 ===== -->
+    <div id="tab-logs" class="tab-content hidden">
+      <div class="page-title">📋 操作日志</div>
+      <div class="card">
+        <div class="card-title">操作历史记录</div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+          <select id="log-filter" onchange="loadLogs()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text);outline:none">
+            <option value="">全部操作</option>
+            <option value="save">保存数据</option>
+            <option value="upload">上传文件</option>
+            <option value="sync_start">开始同步</option>
+            <option value="sync_done">同步完成</option>
+            <option value="logs_clear">清空日志</option>
+            <option value="save_error">保存失败</option>
+          </select>
+          <select id="log-limit" onchange="loadLogs()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text);outline:none">
+            <option value="50">最近 50 条</option>
+            <option value="100" selected>最近 100 条</option>
+            <option value="200">最近 200 条</option>
+            <option value="500">全部</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="loadLogs()">🔄 刷新</button>
+          <button class="btn btn-outline btn-sm" onclick="exportLogs()">⬇️ 导出</button>
+          <button class="btn btn-danger btn-sm" onclick="clearLogs()" style="margin-left:auto">🗑️ 清空日志</button>
+        </div>
+        <div id="log-list" style="max-height:600px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">
+          <div style="padding:30px;text-align:center;color:var(--text2)">点击「刷新」加载日志</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 文件管理 ===== -->
+    <div id="tab-files" class="tab-content hidden">
+      <div class="page-title">🗂️ 文件管理</div>
+      <div class="card">
+        <div class="card-title">文件列表（可删除 images/ 和 docs/ 下的文件）</div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+          <select id="file-type-filter" onchange="loadFiles()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text);outline:none">
+            <option value="images">📷 图片文件 (images/)</option>
+            <option value="docs">📄 文档文件 (docs/)</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="loadFiles()">🔄 刷新</button>
+          <span id="file-count" style="font-size:12px;color:var(--text2);margin-left:auto"></span>
+        </div>
+        <div id="file-list" style="min-height:200px">
+          <div style="padding:30px;text-align:center;color:var(--text2)">点击「刷新」加载文件列表</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 数据备份 ===== -->
+    <div id="tab-backup" class="tab-content hidden">
+      <div class="page-title">💾 数据备份</div>
+      <div class="card">
+        <div class="card-title">创建备份</div>
+        <div class="form-field">
+          <label>备份备注（可选）</label>
+          <input type="text" id="backup-note" placeholder="例如：修改了Hero区域、添加了新文章...">
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="createBackup()">💾 创建备份</button>
+          <span style="font-size:12px;color:var(--text2)">保存数据时会自动创建备份（5分钟节流，最多保留20个）</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">备份说明</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.8">
+          <div>💾 <b>数据文件</b>：config、hero、projects、gallery、articles、about、contact、categories 等 JSON</div>
+          <div>📝 <b>代码文件</b>：serve_admin.js、index.html、index.js、admin.html、package.json</div>
+          <div>⚙️ <b>自动备份</b>：每次保存数据时自动创建（5分钟节流，最多保留20个）</div>
+          <div>🔄 <b>恢复备份</b>：会覆盖当前的数据文件和代码文件</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">备份列表</div>
+        <div style="margin-bottom:12px">
+          <button class="btn btn-outline btn-sm" onclick="loadBackups()">🔄 刷新列表</button>
+        </div>
+        <div id="backup-list" class="backup-list" style="min-height:100px">
+          <div style="padding:30px;text-align:center;color:var(--text2)">点击「刷新列表」加载备份</div>
+        </div>
       </div>
     </div>
   </div>
@@ -518,10 +837,163 @@ body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:var(--bg)
 const API_BASE = "/api";
 const DATA_BASE = "/data";
 
+// ==================== 预览博客 ====================
+function previewBlog() {
+  window.open("index.html", "_blank");
+}
+
 // ==================== 页面加载 ====================
 document.addEventListener("DOMContentLoaded", function() {
   loadAllData();
 });
+
+// ==================== 软件下载相关 ====================
+var swImageList = [];
+
+async function loadSoftware() {
+  try {
+    const r = await fetch(DATA_BASE + "/config.json");
+    if (!r.ok) return;
+    const data = await r.json();
+    const sw = data.software || {};
+    $("sw-title").value = sw.title || "扫码下载";
+    $("sw-desc").value = sw.desc || "长按识别二维码，加入交流群获取最新版本";
+    $("sw-enabled").checked = sw.enabled !== false;
+
+    if (sw.images && sw.images.length) {
+      swImageList = sw.images.map(function(img) {
+        return typeof img === 'string' ? { url: img, label: '' } : img;
+      });
+    } else if (sw.qrcode) {
+      swImageList = [{ url: sw.qrcode, label: '' }];
+    } else {
+      swImageList = [];
+    }
+    renderSwImageList();
+  } catch(e) {}
+}
+
+function renderSwImageList() {
+  var list = $("sw-image-list");
+  if (!list) return;
+  if (!swImageList.length) {
+    list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--text2);font-size:13px;border:2px dashed var(--border);border-radius:10px;">暂无图片，点击上方"上传图片"添加</div>';
+    return;
+  }
+  list.innerHTML = '';
+  swImageList.forEach(function(img, idx) {
+    var item = document.createElement('div');
+    item.style.cssText = 'background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column';
+    var labelEscaped = (img.label || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    item.innerHTML =
+      '<div style="position:relative;aspect-ratio:1;overflow:hidden;background:#f0f0f0">' +
+        '<img src="' + img.url + '?t=' + Date.now() + '" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="previewSwImage(' + idx + ')" title="点击放大">' +
+        '<button onclick="removeSwImage(' + idx + ')" style="position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:50%;background:rgba(220,38,38,.9);color:#fff;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3)">×</button>' +
+        '<button onclick="moveSwImage(' + idx + ',-1)" style="position:absolute;top:6px;left:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">←</button>' +
+        '<button onclick="moveSwImage(' + idx + ',1)" style="position:absolute;top:40px;left:6px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">→</button>' +
+        '<div style="position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.6);color:#fff;padding:2px 8px;border-radius:10px;font-size:11px">' + (idx + 1) + '</div>' +
+      '</div>' +
+      '<div style="padding:8px">' +
+        '<input type="text" value="' + labelEscaped + '" placeholder="标签文字（可选）" onchange="updateSwImageLabel(' + idx + ',this.value)" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;box-sizing:border-box;background:var(--bg);color:var(--text)">' +
+      '</div>';
+    list.appendChild(item);
+  });
+}
+
+function updateSwImageLabel(idx, val) {
+  if (swImageList[idx]) {
+    swImageList[idx].label = val;
+  }
+}
+
+function removeSwImage(idx) {
+  if (!confirm("确定删除这张图片吗？")) return;
+  swImageList.splice(idx, 1);
+  renderSwImageList();
+}
+
+function moveSwImage(idx, dir) {
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= swImageList.length) return;
+  var temp = swImageList[idx];
+  swImageList[idx] = swImageList[newIdx];
+  swImageList[newIdx] = temp;
+  renderSwImageList();
+}
+
+function previewSwImage(idx) {
+  if (!swImageList[idx]) return;
+  window.open(swImageList[idx].url, "_blank");
+}
+
+async function uploadSwImages(input) {
+  if (!input.files.length) return;
+  var files = Array.from(input.files);
+  var successCount = 0;
+
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    if (file.size > 5 * 1024 * 1024) {
+      toast("⚠️ " + file.name + " 超过 5MB，已跳过", "error");
+      continue;
+    }
+    var ext = file.name.substring(file.name.lastIndexOf('.')) || '.webp';
+    var timestamp = Date.now() + '_' + i;
+    var fileName = "sw_img_" + timestamp + ext;
+    var fd = new FormData();
+    fd.append("file", file, fileName);
+
+    try {
+      var res = await fetch(API_BASE + "/upload", { method: "POST", body: fd });
+      var result = await res.json();
+      if (result.success) {
+        swImageList.push({ url: "images/" + fileName, label: "" });
+        successCount++;
+      } else {
+        toast("❌ " + file.name + " 上传失败", "error");
+      }
+    } catch(e) {
+      toast("❌ " + file.name + ": " + e.message, "error");
+    }
+  }
+
+  if (successCount > 0) {
+    toast("✅ 成功上传 " + successCount + " 张图片");
+    renderSwImageList();
+  }
+  input.value = "";
+}
+
+function addSwImageManual() {
+  var url = prompt("请输入图片链接：");
+  if (!url) return;
+  swImageList.push({ url: url.trim(), label: "" });
+  renderSwImageList();
+}
+
+async function saveSoftware() {
+  try {
+    const r = await fetch(DATA_BASE + "/config.json");
+    if (!r.ok) throw new Error("加载配置失败");
+    const data = await r.json();
+    if (!data.software) data.software = {};
+    data.software.title = $("sw-title").value.trim() || "扫码下载";
+    data.software.desc = $("sw-desc").value.trim() || "长按识别二维码，加入交流群获取最新版本";
+    data.software.enabled = $("sw-enabled").checked;
+    data.software.images = swImageList;
+
+    const res = await fetch(API_BASE + "/save/config.json", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error("保存失败");
+    toast("✅ 保存成功");
+  } catch(e) {
+    console.error("保存软件配置失败:", e);
+    toast("❌ " + e.message, "error");
+  }
+}
 
 // ==================== Tab 切换 ====================
 function switchTab(tab, el) {
@@ -635,6 +1107,12 @@ function syncToGitHub() {
               var logLine = document.createElement("div");
               logLine.className = "sync-log-line";
               logLine.innerHTML = '<span class="log-time">' + escHtml(d.time || "") + '</span>' + escHtml(d.message || "");
+
+              // 检测到增量上传信息时，更新顶部提示
+              if (d.message && d.message.indexOf("未变更") !== -1) {
+                $("sync-progress-text").innerHTML = "⚡ 增量上传模式：" + escHtml(d.message);
+              }
+
               logBox.appendChild(logLine);
               logBox.scrollTop = logBox.scrollHeight;
 
@@ -687,14 +1165,18 @@ function syncToGitHub() {
               }
               var summary = $("sync-summary");
               summary.classList.remove("hidden");
+              var isIncremental = (d.skip > 0);
               var html = '<div class="sync-summary-title">'
                 + (d.success ? "🎉 全部部署成功" : "⚠️ 部署完成，但有 " + d.err + " 个文件失败")
                 + "</div>"
                 + '<div style="font-size:13px;color:#6b7280;margin-bottom:6px">'
-                + '<span style="color:#059669">✅ 成功 ' + d.ok + "</span> &nbsp; "
+                + '<span style="color:#059669">✅ 上传 ' + d.ok + "</span> &nbsp; "
                 + (d.err > 0 ? '<span style="color:#dc2626">❌ 失败 ' + d.err + "</span> &nbsp; " : "")
-                + (d.skip > 0 ? '<span style="color:#9ca3af">⚠️ 跳过 ' + d.skip + "</span>" : "")
+                + (d.skip > 0 ? '<span style="color:#9ca3af">⚡ 跳过 ' + d.skip + "（未变更）</span>" : "")
                 + "</div>";
+              if (isIncremental) {
+                html += '<div style="font-size:12px;color:#6b7280;margin-bottom:8px;padding:6px 10px;background:#f9fafb;border-radius:6px">💡 增量上传已启用：只上传有变化的文件，未变更的文件已跳过</div>';
+              }
               if (d.err > 0 && d.results) {
                 html += '<div style="margin-top:8px;padding:10px 12px;background:#fef2f2;border-radius:6px;font-size:12px;color:#991b1b">';
                 for (var i = 0; i < d.results.length; i++) {
@@ -770,12 +1252,50 @@ function escHtml(s) {
 
 // ==================== 全量加载 ====================
 var DATA = {};
+var allArticleTags = []; // 所有文章用过的标签（用于快速选择）
+
 async function loadAllData() {
   var files = ["hero","projects","about","contact","config","articles","gallery"];
   for (var i = 0; i < files.length; i++) {
     try { DATA[files[i]] = await getFile(files[i] + ".json"); } catch(e) { DATA[files[i]] = null; }
   }
+  // 加载分类数据（必须在 populateForms 之前）
+  await loadCategories();
+  // 提取所有文章已用过的标签
+  extractAllTags();
   populateForms();
+  loadSoftware();
+}
+
+// 提取所有文章已用过的标签
+function extractAllTags() {
+  allArticleTags = [];
+  var list = (DATA.articles && DATA.articles.content) || [];
+  for (var i = 0; i < list.length; i++) {
+    var tags = list[i].tags || [];
+    for (var j = 0; j < tags.length; j++) {
+      if (allArticleTags.indexOf(tags[j]) < 0) allArticleTags.push(tags[j]);
+    }
+  }
+  renderExistingTags();
+}
+
+// 渲染快速选择标签
+function renderExistingTags() {
+  var el = $("existing-tags");
+  if (!el) return;
+  if (allArticleTags.length === 0) {
+    el.innerHTML = '<span style="font-size:12px;color:var(--text2)">暂无历史标签</span>';
+    return;
+  }
+  var html = '<span style="font-size:12px;color:var(--text2);margin-right:8px">快速添加：</span>';
+  for (var i = 0; i < allArticleTags.length; i++) {
+    var tag = allArticleTags[i];
+    // 已添加的标签不可点击
+    var disabled = artTags.indexOf(tag) >= 0 ? ' style="opacity:0.4;cursor:not-allowed"' : ' style="cursor:pointer" onclick="addArtTag(\'' + tag.replace(/'/g, "\\'") + '\')"';
+    html += '<span class="tag-item" ' + disabled + '>' + tag + (artTags.indexOf(tag) >= 0 ? '<span class="x">✓</span>' : '') + '</span>';
+  }
+  el.innerHTML = html;
 }
 
 // ==================== 表单填充 ====================
@@ -784,11 +1304,24 @@ function populateForms() {
   // Hero
   var h = DATA.hero && DATA.hero.content;
   if (h) {
+    $("hero-icon").value = h.icon || "";
+    updateIconPreview("hero-icon-preview", h.icon || "", "🔧");
     $("hero-badge").value = h.badge || "";
-    $("hero-h1").value = h.headline_1 || "";
-    $("hero-h2").value = h.headline_2 || "";
-    $("hero-h3").value = h.headline_3 || "";
-    $("hero-h4").value = h.headline_4 || "";
+    // 兼容旧字段：如果有 line_1 用新字段，否则从旧 headline_* 组合
+    if (h.line_1 !== undefined) {
+      $("hero-line1").value = h.line_1 || "";
+      $("hero-hl1").value = h.hl_1 || "";
+      $("hero-line2").value = h.line_2 || "";
+      $("hero-hl2").value = h.hl_2 || "";
+    } else {
+      // 旧数据兼容：拼合成两行
+      var oldLine1 = [h.headline_1, h.headline_2].filter(Boolean).join(' ');
+      var oldLine2 = [h.headline_3, h.headline_4].filter(Boolean).join(' ');
+      $("hero-line1").value = oldLine1;
+      $("hero-hl1").value = h.headline_2 || "";
+      $("hero-line2").value = oldLine2;
+      $("hero-hl2").value = h.headline_4 || "";
+    }
     $("hero-desc").value = h.description || "";
     $("hero-btn1-text").value = h.btn_1_text || "";
     $("hero-btn1-link").value = h.btn_1_link || "";
@@ -817,6 +1350,10 @@ function populateForms() {
       $("about-avatar").value = a.avatar || "";
       $("about-avatar-url").value = "";
       $("about-avatar-preview").innerHTML = "";
+      // 加载图标背景颜色
+      var savedBg = a.icon_bg || "";
+      $("about-icon-bg").value = savedBg;
+      updateIconBgPreview(savedBg, a.avatar || "👤");
     }
   }
   renderContactCards();
@@ -824,8 +1361,16 @@ function populateForms() {
   if (c && c.site) {
     $("site-title").value = c.site.title || "";
     $("site-logo").value = c.site.logo || "";
+    $("site-logo-icon").value = c.site.logo_icon || "";
+    updateIconPreview("logo-icon-preview", c.site.logo_icon || "", "🔧");
     $("site-footer").value = c.site.footer_bottom || "";
     $("site-desc").value = c.site.footer_desc || "";
+  }
+  // 加载背景设置
+  if (c && c.background) {
+    loadBackgroundSettings(c.background);
+  } else {
+    loadBackgroundSettings({ type: "default" });
   }
 }
 
@@ -834,11 +1379,12 @@ async function saveHero() {
   try {
     if (!DATA.hero) DATA.hero = { content: {} };
     var data = {
+      icon: $("hero-icon").value,
       badge: $("hero-badge").value,
-      headline_1: $("hero-h1").value,
-      headline_2: $("hero-h2").value,
-      headline_3: $("hero-h3").value,
-      headline_4: $("hero-h4").value,
+      line_1: $("hero-line1").value,
+      hl_1: $("hero-hl1").value,
+      line_2: $("hero-line2").value,
+      hl_2: $("hero-hl2").value,
       description: $("hero-desc").value,
       btn_1_text: $("hero-btn1-text").value,
       btn_1_link: $("hero-btn1-link").value,
@@ -1119,6 +1665,64 @@ function removeAvatar() {
   $("about-avatar-preview").innerHTML = "";
 }
 
+// ==================== 图标背景颜色 ====================
+function selectIconBg(spanEl, color) {
+  // 取消所有颜色块的选中样式
+  document.querySelectorAll('[onclick^="selectIconBg"]').forEach(function(el) {
+    el.style.border = '2px solid transparent';
+  });
+  // 高亮当前选中
+  spanEl.style.border = '2px solid #6366f1';
+  // 取消默认渐变的选中
+  var defaultRadio = document.getElementById('icon-bg-default');
+  if (defaultRadio) defaultRadio.checked = false;
+  // 设置值
+  $("about-icon-bg").value = color;
+  updateIconBgPreview(color, $("about-avatar").value || "👤");
+}
+function selectIconBgCustom(color) {
+  document.querySelectorAll('[onclick^="selectIconBg"]').forEach(function(el) {
+    el.style.border = '2px solid transparent';
+  });
+  var defaultRadio = document.getElementById('icon-bg-default');
+  if (defaultRadio) defaultRadio.checked = false;
+  $("about-icon-bg").value = color;
+  updateIconBgPreview(color, $("about-avatar").value || "👤");
+}
+function updateIconBgPreview(bgColor, emoji) {
+  var box = document.getElementById('icon-bg-preview-box');
+  if (!box) return;
+  box.textContent = emoji || "👤";
+  if (bgColor) {
+    box.style.background = bgColor;
+  } else {
+    box.style.background = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
+  }
+  // 同步 emoji 实时预览
+  var avatarInput = $("about-avatar");
+  if (avatarInput) {
+    avatarInput.addEventListener('input', function() {
+      var b = document.getElementById('icon-bg-preview-box');
+      if (b) b.textContent = avatarInput.value || "👤";
+    });
+  }
+}
+// 默认渐变选项点击
+(function() {
+  var defaultRadio = document.getElementById('icon-bg-default');
+  if (defaultRadio) {
+    defaultRadio.addEventListener('change', function() {
+      if (this.checked) {
+        document.querySelectorAll('[onclick^="selectIconBg"]').forEach(function(el) {
+          el.style.border = '2px solid transparent';
+        });
+        $("about-icon-bg").value = "";
+        updateIconBgPreview("", $("about-avatar").value || "👤");
+      }
+    });
+  }
+})();
+
 // ==================== 相册 ====================
 function renderGallery() {
   var list = (DATA.gallery && DATA.gallery.content) || [];
@@ -1285,6 +1889,7 @@ function editArticle(id) {
   selectedArtImages = [];
   artTags = a.tags ? a.tags.slice() : [];
   renderArtTags();
+  renderExistingTags(); // 更新快速选择标签状态
   switchTab("articles", null);
 }
 async function saveArticle(publish) {
@@ -1368,6 +1973,7 @@ async function saveArticle(publish) {
     DATA.articles = { content: list };
     clearArtForm();
     renderArticlesList();
+    extractAllTags(); // 重新提取所有标签（包括新添加的）
     toast(publish ? "发布成功！" : "草稿保存成功！");
   } catch(e) {
     toast("保存失败: " + e.message);
@@ -1396,7 +2002,6 @@ function clearArtForm() {
   for (var i = 0; i < ids.length; i++) $(ids[i]).value = "";
   $("art-cover-file").value = "";
   $("art-cover-preview").innerHTML = "";
-  for (var i = 0; i < ids.length; i++) $(ids[i]).value = "";
   artTags = [];
   renderArtTags();
   $("art-preview-box").classList.add("hidden");
@@ -1408,7 +2013,7 @@ function clearArtForm() {
 }
 
 // ==================== 文章文档上传（支持关联图片） ====================
-var selectedArtImages = []; // 选中的关联图片文件
+// selectedArtImages 在文章区顶部声明
 
 // 处理文章文档上传
 async function handleArtDocUpload(input) {
@@ -1490,7 +2095,13 @@ function addArtTag(val) {
   if (!v || artTags.indexOf(v) >= 0) { if (val === undefined) $("art-tag-input").value = ""; return; }
   artTags.push(v);
   renderArtTags();
+  renderExistingTags(); // 更新快速选择标签状态
   if (val === undefined) $("art-tag-input").value = "";
+}
+function rmArtTag(idx) {
+  artTags.splice(idx, 1);
+  renderArtTags();
+  renderExistingTags(); // 更新快速选择标签状态
 }
 function renderArtTags() {
   var c = $("art-tags-container");
@@ -1629,6 +2240,7 @@ async function saveAbout() {
     DATA.about.content.subtitle = $("about-subtitle").value;
     DATA.about.content.avatar = avatarUrl ? "" : $("about-avatar").value;
     DATA.about.content.avatar_url = avatarUrl || "";
+    DATA.about.content.icon_bg = avatarUrl ? "" : ($("about-icon-bg").value || "");
     DATA.about.content.paragraphs = $("about-paras").value.split("\n").map(function(s){return s.trim();}).filter(function(s){return s;});
     await saveFile("about.json", DATA.about.content);
     toast("关于我保存成功！");
@@ -1693,6 +2305,7 @@ async function saveSite() {
     if (!DATA.config.content.site) DATA.config.content.site = {};
     DATA.config.content.site.title = $("site-title").value;
     DATA.config.content.site.logo = $("site-logo").value;
+    DATA.config.content.site.logo_icon = $("site-logo-icon").value;
     DATA.config.content.site.footer_bottom = $("site-footer").value;
     DATA.config.content.site.footer_desc = $("site-desc").value;
     await saveFile("config.json", DATA.config.content);
@@ -1702,6 +2315,279 @@ async function saveSite() {
     console.error(e);
   }
 }
+
+// ==================== 背景设置 ====================
+var currentBgType = "default";
+
+function switchBgType(type) {
+  currentBgType = type;
+  // 更新按钮状态
+  var btns = document.querySelectorAll("#bg-type-tabs .icon-mode-btn");
+  btns.forEach(function(btn) { btn.classList.remove("active"); });
+  var idx = { "default": 0, "image": 1, "color": 2 };
+  if (btns[idx[type]]) btns[idx[type]].classList.add("active");
+
+  // 切换显示
+  $("bg-image-settings").classList.toggle("hidden", type !== "image");
+  $("bg-color-settings").classList.toggle("hidden", type !== "color");
+
+  updateBgPreview();
+}
+
+function loadBackgroundSettings(bg) {
+  currentBgType = bg.type || "default";
+
+  // 更新按钮状态
+  var btns = document.querySelectorAll("#bg-type-tabs .icon-mode-btn");
+  btns.forEach(function(btn) {
+    btn.classList.remove("active");
+  });
+  var idx = { "default": 0, "image": 1, "color": 2 };
+  if (btns[idx[currentBgType]]) btns[idx[currentBgType]].classList.add("active");
+
+  // 切换显示
+  $("bg-image-settings").classList.toggle("hidden", currentBgType !== "image");
+  $("bg-color-settings").classList.toggle("hidden", currentBgType !== "color");
+
+  // 加载图片设置
+  $("bg-image-url").value = bg.image_url || "";
+  var opacity = bg.opacity !== undefined ? Math.round(bg.opacity * 100) : 15;
+  $("bg-opacity").value = opacity;
+  $("bg-opacity-val").textContent = opacity + "%";
+  var blur = bg.blur || 0;
+  $("bg-blur").value = blur;
+  $("bg-blur-val").textContent = blur + "px";
+
+  // 显示图片预览
+  if (bg.image_url) {
+    $("bg-image-preview").innerHTML = '<img src="' + bg.image_url + '?t=' + Date.now() + '" style="max-width:100%;max-height:80px;border-radius:6px;border:1px solid var(--border)">';
+  } else {
+    $("bg-image-preview").innerHTML = "";
+  }
+
+  // 加载颜色设置
+  var color = bg.color || "#1a1a2e";
+  $("bg-color").value = color;
+  $("bg-color-text").value = color;
+
+  updateBgPreview();
+}
+
+function updateBgOpacityLabel(val) {
+  $("bg-opacity-val").textContent = val + "%";
+  updateBgPreview();
+}
+
+function updateBgBlurLabel(val) {
+  $("bg-blur-val").textContent = val + "px";
+  updateBgPreview();
+}
+
+function syncBgColor(val) {
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    $("bg-color").value = val;
+  }
+  updateBgPreview();
+}
+
+// 颜色选择器变化时同步文本框
+document.addEventListener("DOMContentLoaded", function() {
+  var colorPicker = $("bg-color");
+  if (colorPicker) {
+    colorPicker.addEventListener("input", function() {
+      $("bg-color-text").value = this.value;
+      updateBgPreview();
+    });
+  }
+});
+
+async function uploadBgImage(input) {
+  if (!input.files.length) return;
+  var file = input.files[0];
+  if (file.size > 5 * 1024 * 1024) {
+    toast("❌ 图片大小不能超过 5MB", "error");
+    input.value = "";
+    return;
+  }
+  var ext = file.name.substring(file.name.lastIndexOf(".")) || ".webp";
+  var fileName = "bg_custom" + ext;
+  var fd = new FormData();
+  fd.append("file", file, fileName);
+
+  try {
+    var res = await fetch(API_BASE + "/upload", { method: "POST", body: fd });
+    var result = await res.json();
+    if (result.success) {
+      var url = "images/" + fileName;
+      $("bg-image-url").value = url;
+      $("bg-image-preview").innerHTML = '<img src="' + url + '?t=' + Date.now() + '" style="max-width:100%;max-height:80px;border-radius:6px;border:1px solid var(--border)">';
+      toast("✅ 背景图片上传成功");
+      updateBgPreview();
+    } else {
+      toast("❌ " + (result.error || "上传失败"), "error");
+    }
+  } catch(e) {
+    toast("❌ " + e.message, "error");
+  }
+  input.value = "";
+}
+
+function updateBgPreview() {
+  var inner = $("bg-preview-inner");
+  var wrap = $("bg-preview-wrap");
+  if (!inner) return;
+
+  if (currentBgType === "default") {
+    inner.style.background = "linear-gradient(135deg, rgba(99,102,241,.15) 0%, rgba(139,92,246,.1) 50%, rgba(217,70,239,.08) 100%)";
+    inner.innerHTML = '<div style="text-align:center"><div style="font-size:28px;margin-bottom:6px">✨</div><div style="color:#6366f1;font-size:13px;font-weight:600">默认光晕动画背景</div></div>';
+  } else if (currentBgType === "image") {
+    var url = $("bg-image-url").value.trim();
+    var opacity = parseInt($("bg-opacity").value) / 100;
+    var blur = parseInt($("bg-blur").value);
+    if (url) {
+      inner.style.background = 'url("' + url + '?t=' + Date.now() + '") center/cover';
+      inner.style.opacity = opacity;
+      inner.style.filter = blur > 0 ? "blur(" + blur + "px)" : "none";
+      inner.style.transform = blur > 0 ? "scale(1.05)" : "none";
+      inner.innerHTML = "";
+    } else {
+      inner.style.background = "#f0f0f0";
+      inner.style.opacity = 1;
+      inner.style.filter = "none";
+      inner.style.transform = "none";
+      inner.innerHTML = '<div style="color:#999;font-size:14px">请上传或填写图片地址</div>';
+    }
+  } else if (currentBgType === "color") {
+    var color = $("bg-color").value;
+    inner.style.background = color;
+    inner.style.opacity = 1;
+    inner.style.filter = "none";
+    inner.style.transform = "none";
+    inner.innerHTML = '<div style="color:#fff;font-size:13px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.3)">' + color + '</div>';
+  }
+}
+
+async function saveBackground() {
+  try {
+    if (!DATA.config || !DATA.config.content) { toast("请先加载站点数据", "error"); return; }
+    var bg = { type: currentBgType };
+    if (currentBgType === "image") {
+      bg.image_url = $("bg-image-url").value.trim();
+      if (!bg.image_url) { toast("请先上传或填写背景图片地址", "error"); return; }
+      bg.opacity = parseInt($("bg-opacity").value) / 100;
+      bg.blur = parseInt($("bg-blur").value);
+    } else if (currentBgType === "color") {
+      bg.color = $("bg-color-text").value.trim() || $("bg-color").value;
+    }
+    DATA.config.content.background = bg;
+    await saveFile("config.json", DATA.config.content);
+    toast("✅ 背景设置保存成功！");
+  } catch(e) {
+    toast("保存失败: " + e.message, "error");
+    console.error(e);
+  }
+}
+
+function resetBackground() {
+  loadBackgroundSettings({ type: "default" });
+}
+
+// ==================== 图标通用函数 ====================
+function updateIconPreview(previewId, iconValue, defaultEmoji) {
+  var el = document.getElementById(previewId);
+  if (!el) return;
+  var val = (iconValue || "").trim();
+  // 重置样式
+  el.style.background = "";
+  el.style.boxShadow = "";
+  el.style.overflow = "hidden";
+  if (!val) {
+    el.textContent = defaultEmoji || "";
+    return;
+  }
+  var isImage = /\.(png|jpg|jpeg|gif|webp|svg|ico|bmp)$/i.test(val) || val.startsWith('http') || val.startsWith('images/') || val.startsWith('/images/');
+  if (isImage) {
+    el.innerHTML = '<img src="' + val + '?t=' + Date.now() + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block">';
+    el.style.background = "transparent";
+    el.style.boxShadow = "0 4px 15px rgba(0,0,0,.3)";
+  } else {
+    el.textContent = val;
+  }
+}
+
+async function uploadLogoIcon(input) {
+  if (!input.files.length) return;
+  var file = input.files[0];
+  if (file.size > 2 * 1024 * 1024) {
+    toast("❌ 图片大小不能超过 2MB", "error");
+    input.value = "";
+    return;
+  }
+  var ext = file.name.substring(file.name.lastIndexOf(".")) || ".webp";
+  var fileName = "logo_icon" + ext;
+  var fd = new FormData();
+  fd.append("file", file, fileName);
+  try {
+    var res = await fetch(API_BASE + "/upload", { method: "POST", body: fd });
+    var result = await res.json();
+    if (result.success) {
+      var url = "images/" + fileName;
+      $("site-logo-icon").value = url;
+      updateIconPreview("logo-icon-preview", url, "🔧");
+      toast("✅ Logo 图标上传成功");
+    } else {
+      toast("❌ " + (result.error || "上传失败"), "error");
+    }
+  } catch(e) {
+    toast("❌ " + e.message, "error");
+  }
+  input.value = "";
+}
+
+async function uploadHeroIcon(input) {
+  if (!input.files.length) return;
+  var file = input.files[0];
+  if (file.size > 2 * 1024 * 1024) {
+    toast("❌ 图片大小不能超过 2MB", "error");
+    input.value = "";
+    return;
+  }
+  var ext = file.name.substring(file.name.lastIndexOf(".")) || ".webp";
+  var fileName = "hero_icon" + ext;
+  var fd = new FormData();
+  fd.append("file", file, fileName);
+  try {
+    var res = await fetch(API_BASE + "/upload", { method: "POST", body: fd });
+    var result = await res.json();
+    if (result.success) {
+      var url = "images/" + fileName;
+      $("hero-icon").value = url;
+      updateIconPreview("hero-icon-preview", url, "🔧");
+      toast("✅ Hero 图标上传成功");
+    } else {
+      toast("❌ " + (result.error || "上传失败"), "error");
+    }
+  } catch(e) {
+    toast("❌ " + e.message, "error");
+  }
+  input.value = "";
+}
+
+// 输入框变化时实时更新预览
+document.addEventListener("DOMContentLoaded", function() {
+  var siteLogoIcon = document.getElementById("site-logo-icon");
+  if (siteLogoIcon) {
+    siteLogoIcon.addEventListener("input", function() {
+      updateIconPreview("logo-icon-preview", this.value, "🔧");
+    });
+  }
+  var heroIcon = document.getElementById("hero-icon");
+  if (heroIcon) {
+    heroIcon.addEventListener("input", function() {
+      updateIconPreview("hero-icon-preview", this.value, "🔧");
+    });
+  }
+});
 
 // ==================== B站视频链接预览 ====================
 function previewBiliVideo(url) {
@@ -1806,6 +2692,460 @@ function toast(msg, type) {
   t.style.pointerEvents = "auto";
   t.className = "toast show toast-" + type;
   setTimeout(function(){ t.classList.remove("show"); t.style.pointerEvents = "none"; }, 3000);
+}
+
+// ==================== 操作日志 ====================
+// 操作类型映射
+var LOG_META = {
+  save:        { icon: '💾', label: '保存数据' },
+  upload:      { icon: '📤', label: '上传文件' },
+  sync_start:  { icon: '🚀', label: '开始同步' },
+  sync_done:   { icon: '✅', label: '同步完成' },
+  logs_clear:  { icon: '🗑️', label: '清空日志' },
+  save_error:  { icon: '❌', label: '保存失败' }
+};
+
+// 格式化时间为本地时间
+function formatLogTime(isoTime) {
+  try {
+    var d = new Date(isoTime);
+    var Y = d.getFullYear();
+    var M = String(d.getMonth() + 1).padStart(2, '0');
+    var D = String(d.getDate()).padStart(2, '0');
+    var h = String(d.getHours()).padStart(2, '0');
+    var m = String(d.getMinutes()).padStart(2, '0');
+    var s = String(d.getSeconds()).padStart(2, '0');
+    return Y + '-' + M + '-' + D + ' ' + h + ':' + m + ':' + s;
+  } catch(e) { return isoTime; }
+}
+
+// 加载日志列表
+async function loadLogs() {
+  var filter = $('log-filter').value;
+  var limit = $('log-limit').value;
+  var listEl = $('log-list');
+  listEl.innerHTML = '<div class="log-empty">加载中...</div>';
+  try {
+    var url = '/api/logs?limit=' + limit;
+    if (filter) url += '&action=' + filter;
+    var res = await fetch(url);
+    var data = await res.json();
+    if (!data.success || !data.logs || data.logs.length === 0) {
+      listEl.innerHTML = '<div class="log-empty">暂无日志记录</div>';
+      return;
+    }
+    var html = '';
+    data.logs.forEach(function(log) {
+      var meta = LOG_META[log.action] || { icon: '📌', label: log.action };
+      // 尝试解析详情（如果是JSON字符串则格式化显示）
+      var detailText = log.detail || '';
+      try {
+        var parsed = JSON.parse(detailText);
+        detailText = Object.keys(parsed).map(function(k) {
+          return k + ': ' + parsed[k];
+        }).join('  ');
+      } catch(e) {
+        // 不是JSON，直接显示原文
+      }
+      html += '<div class="log-item">' +
+        '<div class="log-icon">' + meta.icon + '</div>' +
+        '<div class="log-body">' +
+          '<div class="log-action">' + meta.label +
+            '<span class="log-tag log-tag-' + log.action + '">' + log.action + '</span>' +
+          '</div>' +
+          '<div class="log-detail">' + escapeHtml(detailText) + '</div>' +
+          '<div class="log-meta">' +
+            '<span>🕐 ' + formatLogTime(log.time) + '</span>' +
+            '<span>🌐 ' + (log.ip || 'unknown') + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    listEl.innerHTML = html;
+  } catch(e) {
+    listEl.innerHTML = '<div class="log-empty">加载失败: ' + escapeHtml(e.message) + '</div>';
+  }
+}
+
+// 清空日志
+async function clearLogs() {
+  if (!confirm('确定要清空所有操作日志吗？此操作不可撤销。')) return;
+  try {
+    var res = await fetch('/api/logs/clear', { method: 'POST' });
+    var data = await res.json();
+    if (data.success) {
+      toast('日志已清空');
+      loadLogs();
+    } else {
+      toast('清空失败: ' + (data.error || '未知错误'), 'error');
+    }
+  } catch(e) {
+    toast('清空失败: ' + e.message, 'error');
+  }
+}
+
+// 导出日志为文本文件
+async function exportLogs() {
+  var filter = $('log-filter').value;
+  var url = '/api/logs?limit=500';
+  if (filter) url += '&action=' + filter;
+  try {
+    var res = await fetch(url);
+    var data = await res.json();
+    if (!data.success || data.logs.length === 0) {
+      toast('暂无日志可导出', 'error');
+      return;
+    }
+    var lines = ['操作日志导出 - ' + new Date().toLocaleString(), '========================================'];
+    data.logs.forEach(function(log) {
+      var meta = LOG_META[log.action] || { label: log.action };
+      lines.push('[' + formatLogTime(log.time) + '] [' + meta.label + '] ' + (log.detail || ''));
+      lines.push('  IP: ' + (log.ip || 'unknown'));
+      lines.push('----------------------------------------');
+    });
+    var blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'operation_log_' + new Date().toISOString().slice(0, 10) + '.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast('已导出 ' + data.logs.length + ' 条日志');
+  } catch(e) {
+    toast('导出失败: ' + e.message, 'error');
+  }
+}
+
+// 简单的 HTML 转义
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ==================== 文件管理 ====================
+
+// 加载文件列表
+async function loadFiles() {
+  var type = $('file-type-filter').value;
+  var listEl = $('file-list');
+  var countEl = $('file-count');
+  listEl.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text2)">加载中...</div>';
+  countEl.textContent = '';
+  try {
+    var res = await fetch('/api/files?type=' + type);
+    var data = await res.json();
+    if (!data.success || data.files.length === 0) {
+      listEl.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text2)">暂无文件</div>';
+      countEl.textContent = '共 0 个文件';
+      return;
+    }
+    countEl.textContent = '共 ' + data.total + ' 个文件';
+    var IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.ico'];
+    var html = '<div class="file-grid">';
+    data.files.forEach(function(f) {
+      var ext = f.name.substring(f.name.lastIndexOf('.')).toLowerCase();
+      var isImage = IMAGE_EXTS.indexOf(ext) !== -1;
+      var thumbHtml = '';
+      if (isImage) {
+        // 本地环境用相对路径
+        thumbHtml = '<img src="' + f.path + '" alt="' + escapeHtml(f.name) + '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="file-ext" style="display:none">' + ext.substring(1) + '</div>';
+      } else {
+        thumbHtml = '<div class="file-ext">' + ext.substring(1) + '</div>';
+      }
+      html += '<div class="file-card">' +
+        '<div class="file-thumb">' + thumbHtml +
+          '<button class="file-del-btn" onclick="deleteFile(\'' + f.path + '\')" title="删除文件">✕</button>' +
+        '</div>' +
+        '<div class="file-info">' +
+          '<div class="file-name" title="' + escapeHtml(f.path) + '">' + escapeHtml(f.name) + '</div>' +
+          '<div class="file-meta"><span>' + f.sizeKB + ' KB</span><span>' + f.path + '</span></div>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+    listEl.innerHTML = html;
+  } catch(e) {
+    listEl.innerHTML = '<div style="padding:30px;text-align:center;color:var(--danger)">加载失败: ' + escapeHtml(e.message) + '</div>';
+  }
+}
+
+// 删除文件
+async function deleteFile(filePath) {
+  if (!confirm('确定要删除文件 "' + filePath + '" 吗？\n\n此操作不可撤销！')) return;
+  try {
+    var res = await fetch('/api/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: filePath })
+    });
+    var data = await res.json();
+    if (data.success) {
+      toast('✅ ' + data.message);
+      loadFiles();
+    } else {
+      toast('❌ ' + (data.error || '删除失败'), 'error');
+    }
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+// ==================== 数据备份 ====================
+
+// 加载备份列表
+async function loadBackups() {
+  var listEl = $('backup-list');
+  listEl.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text2)">加载中...</div>';
+  try {
+    var res = await fetch('/api/backup/list');
+    var data = await res.json();
+    if (!data.success || data.backups.length === 0) {
+      listEl.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text2)">暂无备份，点击「创建备份」生成第一个备份</div>';
+      return;
+    }
+    var html = '<div class="backup-list">';
+    data.backups.forEach(function(b) {
+      var iconClass = b.type === 'manual' ? 'manual' : 'auto';
+      var icon = b.type === 'manual' ? '💾' : '⚙️';
+      var typeLabel = b.type === 'manual' ? '手动备份' : '自动备份';
+      var sizeKB = (b.totalSize / 1024).toFixed(1);
+      var noteHtml = b.note ? '<div style="font-size:12px;color:var(--accent);margin-top:4px;font-style:italic">📝 ' + escapeHtml(b.note) + '</div>' : '';
+      html += '<div class="backup-item">' +
+        '<div class="backup-icon ' + iconClass + '">' + icon + '</div>' +
+        '<div class="backup-body">' +
+          '<div class="backup-name">' + escapeHtml(b.name) + '</div>' +
+          noteHtml +
+          '<div class="backup-meta">' +
+            '<span>📁 ' + b.fileCount + ' 个文件</span>' +
+            '<span>📦 ' + sizeKB + ' KB</span>' +
+            '<span>🕐 ' + formatBackupTime(b.time) + '</span>' +
+            '<span style="font-weight:600;color:' + (b.type === 'manual' ? '#3b82f6' : '#6b7280') + '">' + typeLabel + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="backup-actions">' +
+          '<button class="btn btn-outline btn-sm" onclick="restoreBackup(this.getAttribute(\'data-name\'))" data-name="' + escapeHtml(b.name) + '">📥 恢复</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="deleteBackup(this.getAttribute(\'data-name\'))" data-name="' + escapeHtml(b.name) + '">🗑️ 删除</button>' +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+    listEl.innerHTML = html;
+  } catch(e) {
+    listEl.innerHTML = '<div style="padding:30px;text-align:center;color:var(--danger)">加载失败: ' + escapeHtml(e.message) + '</div>';
+  }
+}
+
+// 格式化备份时间
+function formatBackupTime(isoTime) {
+  try {
+    var d = new Date(isoTime);
+    var M = String(d.getMonth() + 1).padStart(2, '0');
+    var D = String(d.getDate()).padStart(2, '0');
+    var h = String(d.getHours()).padStart(2, '0');
+    var m = String(d.getMinutes()).padStart(2, '0');
+    var s = String(d.getSeconds()).padStart(2, '0');
+    return M + '-' + D + ' ' + h + ':' + m + ':' + s;
+  } catch(e) { return isoTime; }
+}
+
+// 创建备份
+async function createBackup() {
+  var note = $('backup-note').value.trim();
+  if (!confirm('确定要创建一个手动备份吗？')) return;
+  try {
+    toast('⏳ 正在创建备份...');
+    var res = await fetch('/api/backup/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'manual', note: note })
+    });
+    var data = await res.json();
+    if (data.success) {
+      toast('✅ 备份已创建（' + data.backup.fileCount + ' 个文件）');
+      $('backup-note').value = '';
+      loadBackups();
+    } else {
+      toast('❌ ' + (data.error || '创建失败'), 'error');
+    }
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+// 恢复备份
+async function restoreBackup(backupName) {
+  if (!confirm('确定要恢复备份 "' + backupName + '" 吗？\n\n⚠️ 这将覆盖当前的 data/ 目录下所有 JSON 文件！')) return;
+  if (!confirm('再次确认：恢复操作会覆盖当前数据，确定继续吗？')) return;
+  try {
+    toast('⏳ 正在恢复备份...');
+    var res = await fetch('/api/backup/restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: backupName })
+    });
+    var data = await res.json();
+    if (data.success) {
+      toast('✅ ' + data.message);
+      // 重新加载页面数据
+      setTimeout(function() { loadAllData(); }, 500);
+    } else {
+      toast('❌ ' + (data.error || '恢复失败'), 'error');
+    }
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+// 删除备份
+async function deleteBackup(backupName) {
+  if (!confirm('确定要删除备份 "' + backupName + '" 吗？')) return;
+  try {
+    var res = await fetch('/api/backup/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: backupName })
+    });
+    var data = await res.json();
+    if (data.success) {
+      toast('✅ ' + data.message);
+      loadBackups();
+    } else {
+      toast('❌ ' + (data.error || '删除失败'), 'error');
+    }
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+// ==================== 分类管理 ====================
+var DATA_CATEGORIES = {
+  article_categories: [],
+  gallery_categories: []
+};
+
+// 加载分类数据
+async function loadCategories() {
+  try {
+    const r = await fetch(DATA_BASE + "/categories.json");
+    if (!r.ok) return;
+    const data = await r.json();
+    DATA_CATEGORIES = data;
+    renderCategoryLists();
+    populateCategorySelects();
+  } catch(e) {
+    console.error("加载分类失败:", e);
+  }
+}
+
+// 渲染分类管理列表
+function renderCategoryLists() {
+  // 文章分类
+  var artList = $("article-cat-list");
+  artList.innerHTML = DATA_CATEGORIES.article_categories.map(function(cat) {
+    var name = typeof cat === 'string' ? cat : cat.zh;
+    return '<span class="tag tag-blue" style="cursor:pointer;" onclick="removeCategory(\'article\', \'' + escHtml(name) + '\')">' + escHtml(name) + ' ×</span>';
+  }).join('');
+
+  // 相册分类
+  var galList = $("gallery-cat-list");
+  galList.innerHTML = DATA_CATEGORIES.gallery_categories.map(function(cat) {
+    var name = typeof cat === 'string' ? cat : cat.zh;
+    return '<span class="tag tag-green" style="cursor:pointer;" onclick="removeCategory(\'gallery\', \'' + escHtml(name) + '\')">' + escHtml(name) + ' ×</span>';
+  }).join('');
+}
+
+// 填充分类选择器
+function populateCategorySelects() {
+  // 文章分类选择器
+  var artSel = $("art-category");
+  artSel.innerHTML = DATA_CATEGORIES.article_categories.map(function(cat) {
+    var name = typeof cat === 'string' ? cat : cat.zh;
+    return '<option value="' + escHtml(name) + '">' + escHtml(name) + '</option>';
+  }).join('');
+
+  // 相册分类选择器
+  var galSel = $("gal-category");
+  galSel.innerHTML = DATA_CATEGORIES.gallery_categories.map(function(cat) {
+    var name = typeof cat === 'string' ? cat : cat.zh;
+    return '<option value="' + escHtml(name) + '">' + escHtml(name) + '</option>';
+  }).join('');
+}
+
+// 添加分类（支持同时添加中文和英文）
+function addCategory(type) {
+  var input = type === 'article' ? $("new-article-cat") : $("new-gallery-cat");
+  var zhName = input.value.trim();
+  if (!zhName) {
+    toast("请输入分类名称", "error");
+    return;
+  }
+  var key = type === 'article' ? 'article_categories' : 'gallery_categories';
+  // 检查是否已存在（支持字符串和对象两种格式）
+  var exists = DATA_CATEGORIES[key].some(function(cat) {
+    var name = typeof cat === 'string' ? cat : cat.zh;
+    return name === zhName;
+  });
+  if (exists) {
+    toast("该分类已存在", "error");
+    return;
+  }
+  // 询问是否添加英文翻译
+  var enName = prompt("请输入该分类的英文翻译（可选，留空则使用中文）：");
+  enName = enName ? enName.trim() : zhName;
+
+  DATA_CATEGORIES[key].push({ zh: zhName, en: enName });
+  input.value = '';
+  renderCategoryLists();
+  populateCategorySelects();
+  toast("已添加分类: " + zhName);
+}
+
+// 删除分类
+function removeCategory(type, name) {
+  if (!confirm("确定删除分类「" + name + "」吗？")) return;
+  var key = type === 'article' ? 'article_categories' : 'gallery_categories';
+  var idx = -1;
+  for (var i = 0; i < DATA_CATEGORIES[key].length; i++) {
+    var catName = typeof DATA_CATEGORIES[key][i] === 'string' ? DATA_CATEGORIES[key][i] : DATA_CATEGORIES[key][i].zh;
+    if (catName === name) {
+      idx = i;
+      break;
+    }
+  }
+  if (idx >= 0) {
+    DATA_CATEGORIES[key].splice(idx, 1);
+    renderCategoryLists();
+    populateCategorySelects();
+    toast("已删除分类: " + name);
+  }
+}
+
+// 保存分类
+async function saveCategories() {
+  try {
+    var r = await fetch(API_BASE + "/save/categories.json", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(DATA_CATEGORIES)
+    });
+    var data = await r.json();
+    if (data.success) {
+      toast("分类保存成功！");
+    } else {
+      toast("保存失败: " + (data.error || "未知错误"), "error");
+    }
+  } catch(e) {
+    toast("保存失败: " + e.message, "error");
+  }
+}
+
+// HTML转义防XSS
+function escHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 </script>
 </body>
