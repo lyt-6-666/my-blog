@@ -924,7 +924,7 @@
       var label = img.label || '';
       var card = document.createElement('div');
       card.className = 'software-img-card';
-      card.innerHTML = '<img src="' + url + '" alt="' + (label || '图片 ' + (idx + 1)) + '" style="width:100%;height:200px;object-fit:cover;display:block">' +
+      card.innerHTML = '<img src="' + url + '" alt="' + (label || '图片 ' + (idx + 1)) + '">' +
         (label ? '<div class="software-img-label">' + esc(label) + '</div>' : '');
       card.addEventListener('click', function() {
         var modal = document.createElement('div');
