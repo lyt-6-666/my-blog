@@ -457,6 +457,21 @@
   .art-body h3{font-size:1.1rem;margin-bottom:.5rem;line-height:1.4}
   .art-body p{color:var(--text2);font-size:.88rem;line-height:1.6}
 
+  /* ===== 文章搜索与分页 ===== */
+  .art-toolbar{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;margin-bottom:1.5rem}
+  .art-search{flex:1;min-width:200px;max-width:360px;padding:.6rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-size:.88rem;background:var(--card);color:var(--text);outline:none;transition:border .2s}
+  .art-search:focus{border-color:var(--accent)}
+  .art-search::placeholder{color:var(--muted)}
+  .art-tag-filters{display:flex;gap:.4rem;flex-wrap:wrap}
+  .art-tag-btn{padding:.35rem .9rem;border-radius:50px;border:1px solid var(--border);background:var(--card);color:var(--text2);font-size:.78rem;cursor:pointer;transition:all .2s}
+  .art-tag-btn.active,.art-tag-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .art-count{font-size:.8rem;color:var(--muted);margin-left:auto}
+  .art-load-more{text-align:center;margin-top:2rem}
+  .art-load-more button{padding:.6rem 2rem;border-radius:50px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-size:.88rem;font-weight:500;cursor:pointer;transition:all .2s}
+  .art-load-more button:hover{border-color:var(--accent);color:var(--accent)}
+  .art-load-more button:disabled{opacity:.4;cursor:not-allowed}
+  .art-empty{text-align:center;padding:3rem;color:var(--muted);font-size:.9rem;grid-column:1/-1}
+
   /* ===== 关于 ===== */
   .about-section{background:var(--bg2)}
   .about-layout{display:grid;grid-template-columns:auto 1fr;gap:4rem;align-items:start}
@@ -830,7 +845,15 @@
           <h2 class="sec-title" data-i18n="title_articles">技术文章</h2>
           <p class="sec-desc" data-i18n="desc_articles">分享 CAD 二次开发经验与实用技巧</p>
         </div>
+        <div class="art-toolbar" id="art-toolbar" style="display:none">
+          <input type="text" class="art-search" id="art-search" placeholder="🔍 搜索文章标题或标签...">
+          <div class="art-tag-filters" id="art-tag-filters"></div>
+          <span class="art-count" id="art-count"></span>
+        </div>
         <div class="articles-grid" id="articles-grid"></div>
+        <div class="art-load-more" id="art-load-more" style="display:none">
+          <button onclick="loadMoreArticles()" id="art-load-btn">加载更多</button>
+        </div>
       </div>
     </section>
 
