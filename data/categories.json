@@ -1,0 +1,14 @@
+{
+  "article_categories": [
+    { "zh": "入门教程", "en": "Beginner" },
+    { "zh": "实战技巧", "en": "Tips" },
+    { "zh": "开发笔记", "en": "Dev Notes" },
+    { "zh": "工具分享", "en": "Tools" }
+  ],
+  "gallery_categories": [
+    { "zh": "软件截图", "en": "Screenshots" },
+    { "zh": "开发瞬间", "en": "Dev Moments" },
+    { "zh": "设计稿", "en": "Designs" },
+    { "zh": "生活记录", "en": "Life" }
+  ]
+}
