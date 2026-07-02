@@ -300,6 +300,9 @@
       btn_watch_video: '观看视频',
       btn_docs: '使用说明',
       btn_download: '下载PDF',
+      art_search: '🔍 搜索文章标题或标签...',
+      art_load_more: '加载更多',
+      art_no_match: '没有找到匹配的文章',
       // 加载状态
       loading: '加载中...',
       load_error: '加载失败',
@@ -369,6 +372,9 @@
       btn_watch_video: 'Watch Video',
       btn_docs: 'Documentation',
       btn_download: 'Download PDF',
+      art_search: '🔍 Search by title or tag...',
+      art_load_more: 'Load More',
+      art_no_match: 'No matching articles found',
       // 加载状态
       loading: 'Loading...',
       load_error: 'Load failed',
@@ -1391,20 +1397,117 @@
   }
 
   // ===========================
-  // 文章 (articles.json → array)
+  // 文章 (articles.json → array) + 搜索 + 分页
   // ===========================
   var _articles = [];
+  var _artPage = 0;
+  var _artPageSize = 6;
+  var _artSearch = '';
+  var _artTagFilter = '';
+  var _artFiltered = [];
+
   function renderArticles(list) {
     _articles = Array.isArray(list) ? list : [];
-    var el = document.getElementById('articles-grid');
-    if (!el) return;
     var published = _articles.filter(function (a) { return a.published !== false; });
+    published.sort(function (a, b) { return new Date(b.updated_at || 0) - new Date(a.updated_at || 0); });
+    _artFiltered = published;
+
     if (published.length === 0) {
-      el.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:3rem;">' + t('empty_articles') + '</p>';
+      var el = document.getElementById('articles-grid');
+      if (el) el.innerHTML = '<p class="art-empty">' + t('empty_articles') + '</p>';
       return;
     }
-    published.sort(function (a, b) { return new Date(b.updated_at || 0) - new Date(a.updated_at || 0); });
-    el.innerHTML = published.map(function (a) {
+
+    // 收集所有标签
+    var allTags = [];
+    published.forEach(function (a) {
+      (a.tags || []).forEach(function (tag) {
+        if (allTags.indexOf(tag) < 0) allTags.push(tag);
+      });
+    });
+
+    // 渲染标签筛选按钮
+    var tagFiltersEl = document.getElementById('art-tag-filters');
+    if (tagFiltersEl && allTags.length > 0) {
+      tagFiltersEl.innerHTML = '<button class="art-tag-btn active" data-tag="">' + (currentLang === 'zh' ? '全部' : 'All') + '</button>' +
+        allTags.map(function (tag) {
+          return '<button class="art-tag-btn" data-tag="' + esc(tag) + '">' + esc(tag) + '</button>';
+        }).join('');
+      tagFiltersEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('.art-tag-btn');
+        if (!btn) return;
+        tagFiltersEl.querySelectorAll('.art-tag-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        _artTagFilter = btn.getAttribute('data-tag');
+        _artPage = 0;
+        filterAndRenderArticles();
+      });
+    }
+
+    // 搜索框事件
+    var searchEl = document.getElementById('art-search');
+    if (searchEl) {
+      searchEl.addEventListener('input', function () {
+        _artSearch = this.value.trim().toLowerCase();
+        _artPage = 0;
+        filterAndRenderArticles();
+      });
+    }
+
+    // 显示工具栏
+    var toolbar = document.getElementById('art-toolbar');
+    if (toolbar) toolbar.style.display = '';
+
+    filterAndRenderArticles();
+  }
+
+  function filterAndRenderArticles() {
+    var result = _artFiltered;
+
+    // 标签筛选
+    if (_artTagFilter) {
+      result = result.filter(function (a) {
+        return (a.tags || []).indexOf(_artTagFilter) >= 0;
+      });
+    }
+
+    // 搜索筛选
+    if (_artSearch) {
+      result = result.filter(function (a) {
+        var title = (a.title || '').toLowerCase();
+        var summary = (a.summary || '').toLowerCase();
+        var tags = (a.tags || []).join(' ').toLowerCase();
+        var cat = (a.category || '').toLowerCase();
+        return title.indexOf(_artSearch) >= 0 || summary.indexOf(_artSearch) >= 0 || tags.indexOf(_artSearch) >= 0 || cat.indexOf(_artSearch) >= 0;
+      });
+    }
+
+    // 更新计数
+    var countEl = document.getElementById('art-count');
+    if (countEl) {
+      countEl.textContent = result.length + '/' + _artFiltered.length;
+    }
+
+    // 分页渲染
+    _artPage = 0;
+    renderArticlePage(result);
+  }
+
+  function renderArticlePage(list) {
+    var el = document.getElementById('articles-grid');
+    if (!el) return;
+
+    if (list.length === 0) {
+      el.innerHTML = '<p class="art-empty">' + (_artSearch || _artTagFilter ? (currentLang === 'zh' ? '没有找到匹配的文章' : 'No matching articles') : t('empty_articles')) + '</p>';
+      var loadMore = document.getElementById('art-load-more');
+      if (loadMore) loadMore.style.display = 'none';
+      return;
+    }
+
+    var end = Math.min((_artPage + 1) * _artPageSize, list.length);
+    var pageItems = list.slice(0, end);
+
+    el.innerHTML = pageItems.map(function (a) {
       var date = new Date(a.updated_at || a.created_at || Date.now()).toLocaleDateString('zh-CN');
       var summary = a.summary || (a.content || '').replace(/[#>*`\[\]\n]/g, '').trim().slice(0, 80) + '…';
       var thumb = '';
@@ -1412,10 +1515,8 @@
         var imgUrl = getImgUrl(a.cover_image);
         var isCached = ImagePreloader.cache.has(imgUrl);
         if (isCached) {
-          // 已预加载：直接显示
           thumb = '<img src="' + imgUrl + '" alt="" class="img-loaded" style="opacity:1;position:relative;z-index:2" onerror="this.style.display=\'none\'">';
         } else {
-          // 未预加载：骨架屏占位 + 懒加载
           thumb = '<span class="img-skeleton" style="position:absolute;inset:0;width:100%;height:100%;z-index:1"></span>' +
                   '<img src="' + imgUrl + '" alt="" style="position:relative;z-index:2;opacity:0" onload="this.style.opacity=\'1\';this.previousElementSibling.style.display=\'none\'" onerror="this.style.display=\'none\'">';
         }
@@ -1431,15 +1532,33 @@
         '</div>' +
       '</article>';
     }).join('');
+
     el.querySelectorAll('.art-card').forEach(function (card) {
       io.observe(card);
       card.addEventListener('click', function () { openArticle(card.getAttribute('data-id')); });
     });
-    // 启动懒加载观察器
     el.querySelectorAll('img[data-src]').forEach(function (img) {
       ImagePreloader.observe(img);
     });
+
+    // 加载更多按钮
+    var loadMore = document.getElementById('art-load-more');
+    var loadBtn = document.getElementById('art-load-btn');
+    if (loadMore && loadBtn) {
+      if (end < list.length) {
+        loadMore.style.display = '';
+        loadBtn.disabled = false;
+        loadBtn.textContent = (currentLang === 'zh' ? '加载更多' : 'Load More') + ' (' + (list.length - end) + ')';
+      } else {
+        loadMore.style.display = 'none';
+      }
+    }
   }
+
+  window.loadMoreArticles = function () {
+    _artPage++;
+    filterAndRenderArticles();
+  };
 
   // ===========================
   // 关于 (about.json)
