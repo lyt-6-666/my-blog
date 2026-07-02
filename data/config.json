@@ -6,8 +6,12 @@
     "qrcode": "images/software_qrcode.webp",
     "images": [
       {
-        "url": "images/software_qrcode.webp",
-        "label": "一群"
+        "url": "images/sw_img_1782955640123_0.jpg",
+        "label": "一群（已满）"
+      },
+      {
+        "url": "images/sw_img_1782955640174_1.jpg",
+        "label": "二群（推荐申请）"
       }
     ]
   },
