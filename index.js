@@ -1897,7 +1897,7 @@
       var dx = mouse.x - prevMouse.x;
       var dy = mouse.y - prevMouse.y;
       var speed = Math.sqrt(dx * dx + dy * dy);
-      var count = Math.min(Math.floor(speed / 3), 6);
+      var count = Math.min(Math.floor(speed / 5), 3);
 
       for (var i = 0; i < count; i++) {
         var t = i / count;
@@ -1907,8 +1907,8 @@
           vx: (Math.random() - 0.5) * 0.5,
           vy: (Math.random() - 0.5) * 0.5,
           life: 1,
-          decay: 0.015 + Math.random() * 0.02,
-          size: 2.5 + Math.random() * 2.5
+          decay: 0.025 + Math.random() * 0.025,
+          size: 2 + Math.random() * 2
         });
       }
     });
@@ -1963,7 +1963,7 @@
         }
       }
 
-      if (particles.length > 300) particles = particles.slice(-300);
+      if (particles.length > 150) particles = particles.slice(-150);
       requestAnimationFrame(animate);
     }
     animate();
