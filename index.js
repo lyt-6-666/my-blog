@@ -1244,6 +1244,12 @@
   // 获取分类翻译
   function getCatTranslation(category, type) {
     if (!category) return category;
+    // 先查 i18n 翻译表（cat_ 前缀）
+    var i18nKey = 'cat_' + category;
+    if (I18N[currentLang] && I18N[currentLang][i18nKey]) {
+      return I18N[currentLang][i18nKey];
+    }
+    // 再查自定义分类列表
     var cats = type === 'gallery' ? _categories.gallery_categories : _categories.article_categories;
     for (var i = 0; i < cats.length; i++) {
       var cat = cats[i];
