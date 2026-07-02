@@ -93,7 +93,7 @@
   .nav-right{display:flex;align-items:center;gap:.8rem;position:relative}
   .theme-btn{width:38px;height:38px;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all .3s}
   .theme-btn:hover{border-color:var(--accent);background:var(--soft)}
-  .theme-panel{position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1rem;box-shadow:var(--sh-lg);display:none;flex-wrap:wrap;gap:.6rem;width:220px;z-index:100}
+  .theme-panel{position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1rem;box-shadow:var(--sh-lg);display:none;flex-wrap:wrap;gap:.6rem;width:150px;z-index:100}
   .theme-panel.show{display:flex}
   .tp-label{width:100%;font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:.2rem}
   .tp-opt{width:36px;height:36px;border-radius:10px;border:2px solid transparent;cursor:pointer;transition:all .3s;position:relative}
@@ -133,6 +133,42 @@
     background:radial-gradient(circle,var(--accent-l) 0%,transparent 70%);
     opacity:.12;filter:blur(60px);
     animation:orbFloat2 18s ease-in-out infinite;
+  }
+
+  /* 鼠标拖尾粒子画布 */
+  #trail-canvas{position:fixed;inset:0;pointer-events:none;z-index:9998}
+
+  /* 浮动几何装饰 */
+  .float-shapes{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .float-shape{position:absolute;opacity:.06;animation:floatDrift linear infinite}
+  .float-shape:nth-child(1){width:60px;height:60px;border:2px solid var(--accent);border-radius:50%;top:10%;left:5%;animation-duration:25s}
+  .float-shape:nth-child(2){width:40px;height:40px;border:2px solid var(--accent-l);top:30%;right:8%;animation-duration:30s;animation-delay:-5s}
+  .float-shape:nth-child(3){width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:35px solid var(--accent);top:60%;left:12%;animation-duration:22s;animation-delay:-8s}
+  .float-shape:nth-child(4){width:50px;height:50px;border:2px solid var(--accent);transform:rotate(45deg);top:75%;right:15%;animation-duration:28s;animation-delay:-12s}
+  .float-shape:nth-child(5){width:30px;height:30px;border:2px solid var(--accent-l);border-radius:50%;top:45%;left:50%;animation-duration:35s;animation-delay:-3s}
+  .float-shape:nth-child(6){width:45px;height:45px;border:2px solid var(--accent);top:85%;left:40%;animation-duration:20s;animation-delay:-15s}
+  @keyframes floatDrift{
+    0%{transform:translateY(0) rotate(0deg);opacity:.06}
+    25%{transform:translateY(-30px) rotate(90deg);opacity:.08}
+    50%{transform:translateY(0) rotate(180deg);opacity:.05}
+    75%{transform:translateY(30px) rotate(270deg);opacity:.08}
+    100%{transform:translateY(0) rotate(360deg);opacity:.06}
+  }
+
+  /* 渐变背景流动 */
+  #gradient-flow{position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:linear-gradient(135deg,
+      rgba(99,102,241,.03) 0%,
+      rgba(139,92,246,.02) 25%,
+      rgba(217,70,239,.03) 50%,
+      rgba(99,102,241,.02) 75%,
+      rgba(139,92,246,.03) 100%);
+    background-size:400% 400%;
+    animation:gradientFlow 20s ease infinite}
+  @keyframes gradientFlow{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
   }
   @keyframes orbFloat1{
     0%,100%{transform:translate(0,0) scale(1)}
@@ -583,11 +619,83 @@
   .gal-item img[src=""],
   .gal-item img:not([src]){display:none}
 
+  /* ===== 打字机效果 ===== */
+  .typewriter-cursor{display:inline-block;width:3px;height:1em;background:var(--accent);margin-left:4px;animation:blink .8s step-end infinite;vertical-align:text-bottom}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+  /* ===== 数字滚动 ===== */
+  .stat-num{display:inline-block}
+
+  /* ===== 3D 倾斜卡片 ===== */
+  .tilt-card{transition:transform .15s ease-out,box-shadow .3s ease;transform-style:preserve-3d;will-change:transform}
+  .tilt-card:hover{box-shadow:0 25px 60px rgba(0,0,0,.12)}
+
+  /* ===== 页面加载动画 ===== */
+  #page-loader.loaded{opacity:0;visibility:hidden;pointer-events:none}
+
+  /* ===== Hero 打字机标题 ===== */
+  #hero-title .hl{
+    background:var(--g1);
+    background-size:300% 100%;
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+    animation:titleGlow 5s ease infinite;
+    filter:drop-shadow(0 0 20px var(--glow));
+  }
+
+  /* ===== Hero 粒子画布 ===== */
+  #particles-canvas{position:absolute;inset:0;z-index:0;pointer-events:none}
+
+  /* ===== 交错入场动画 ===== */
+  .stagger-item{opacity:0;transform:translateY(40px);transition:all .6s cubic-bezier(.16,1,.3,1)}
+  .stagger-item.vis{opacity:1;transform:translateY(0)}
+  /* 从左侧滑入 */
+  .stagger-left{opacity:0;transform:translateX(-40px);transition:all .6s cubic-bezier(.16,1,.3,1)}
+  .stagger-left.vis{opacity:1;transform:translateX(0)}
+  /* 从右侧滑入 */
+  .stagger-right{opacity:0;transform:translateX(40px);transition:all .6s cubic-bezier(.16,1,.3,1)}
+  .stagger-right.vis{opacity:1;transform:translateX(0)}
+  /* 缩放淡入 */
+  .stagger-scale{opacity:0;transform:scale(.85);transition:all .6s cubic-bezier(.16,1,.3,1)}
+  .stagger-scale.vis{opacity:1;transform:scale(1)}
+
+  /* ===== 点击涟漪 ===== */
+  .ripple{position:fixed;width:10px;height:10px;border-radius:50%;background:var(--accent);opacity:.25;pointer-events:none;z-index:99998;animation:rippleExpand .6s ease-out forwards}
+  @keyframes rippleExpand{to{width:300px;height:300px;margin-left:-150px;margin-top:-150px;opacity:0}}
+
+  /* ===== 磁性按钮 ===== */
+  .mag-btn{transition:transform .2s ease-out}
+
+  /* ===== 分区视差 ===== */
+  .parallax-section{will-change:transform}
+
+  /* ===== 联系卡片波纹 ===== */
+  .contact-card{overflow:hidden;position:relative}
+  .contact-card::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),var(--soft) 0%,transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}
+  .contact-card:hover::after{opacity:1}
+
   </style>
 </head>
 <body>
+  <!-- 页面加载动画 -->
+  <div id="page-loader" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease,visibility .6s ease">
+    <div style="width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:1.2rem"></div>
+    <div style="font-size:.9rem;color:var(--text2);font-weight:500" id="loader-text">Loading...</div>
+  </div>
+
   <div id="bg-image-layer"></div>
+  <div id="gradient-flow"></div>
   <div class="bg-orb"></div>
+  <canvas id="trail-canvas"></canvas>
+  <div class="float-shapes">
+    <div class="float-shape"></div>
+    <div class="float-shape"></div>
+    <div class="float-shape"></div>
+    <div class="float-shape"></div>
+    <div class="float-shape"></div>
+    <div class="float-shape"></div>
+  </div>
   <div id="scroll-bar"></div>
   <button id="back-top" title="回到顶部">↑</button>
 
@@ -618,7 +726,14 @@
         <div class="theme-btn" id="theme-btn" title="切换主题">🎨</div>
         <div class="theme-panel" id="theme-panel">
           <div class="tp-label" id="tp-label">选择主题</div>
+          <div class="tp-opt" data-t="indigo" title="靛蓝"></div>
           <div class="tp-opt" data-t="rose" title="玫瑰"></div>
+          <div class="tp-opt" data-t="emerald" title="翡翠"></div>
+          <div class="tp-opt" data-t="amber" title="琥珀"></div>
+          <div class="tp-opt" data-t="ocean" title="海洋"></div>
+          <div class="tp-opt" data-t="purple" title="紫色"></div>
+          <div class="tp-opt" data-t="sunset" title="日落"></div>
+          <div class="tp-opt" data-t="mint" title="薄荷"></div>
           <div class="tp-opt" data-t="dark" title="暗黑"></div>
         </div>
         <button class="hamburger" id="hamburger">
@@ -631,6 +746,7 @@
   <main>
     <!-- Hero -->
     <section id="home" class="hero">
+      <canvas id="particles-canvas"></canvas>
       <div class="hero-content fade-in">
         <div class="hero-avatar" id="hero-avatar">
           <span class="hero-avatar-icon" id="hero-avatar-icon">🔧</span>
