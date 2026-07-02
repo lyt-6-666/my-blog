@@ -318,6 +318,11 @@
       theme_sunset: '日落',
       theme_mint: '薄荷',
       theme_dark: '暗黑',
+      // Footer
+      footer_nav: '快速导航',
+      footer_more: '更多',
+      footer_contact: '联系方式',
+      footer_back_top: '回到顶部 ↑',
     },
     en: {
       // 导航
@@ -382,6 +387,11 @@
       theme_sunset: 'Sunset',
       theme_mint: 'Mint',
       theme_dark: 'Dark',
+      // Footer
+      footer_nav: 'Navigation',
+      footer_more: 'More',
+      footer_contact: 'Contact',
+      footer_back_top: 'Back to Top ↑',
     }
   };
 
@@ -783,6 +793,12 @@
     var footer = document.getElementById('footer-text');
     if (footer) footer.innerHTML = site.footer_bottom || '&copy; 2026';
 
+    // Footer Logo 和描述
+    var footerLogo = document.getElementById('footer-logo-text');
+    if (footerLogo && site.logo) footerLogo.textContent = site.logo;
+    var footerDesc = document.getElementById('footer-desc');
+    if (footerDesc && site.footer_desc) footerDesc.textContent = site.footer_desc;
+
     // 加载背景配置
     if (cfg.background) {
       renderBackground(cfg.background);
@@ -927,6 +943,9 @@
     // 显示导航栏的下载链接
     var navLink = document.getElementById('nav-software');
     if (navLink) navLink.classList.remove('hidden');
+    // 显示 Footer 的下载链接
+    var footerSwLink = document.getElementById('footer-software-link');
+    if (footerSwLink) footerSwLink.classList.remove('hidden');
 
     // 标题和描述
     var titleEl = document.getElementById('software-title');
@@ -1487,14 +1506,27 @@
     var cards = (contact.cards || []).filter(function (c) { return c.title; });
     if (cards.length === 0) {
       el.innerHTML = '<p style="color:var(--muted);text-align:center;grid-column:1/-1;padding:3rem;">' + t('empty_contact') + '</p>';
-      return;
+    } else {
+      el.innerHTML = cards.map(function (c) {
+        return '<div class="contact-card fade-in">' +
+          '<div class="contact-icon">' + (c.icon || '📧') + '</div>' +
+          '<div><h4>' + esc(c.title) + '</h4><p>' + esc(c.value || '') + '</p></div>' +
+        '</div>';
+      }).join('');
     }
-    el.innerHTML = cards.map(function (c) {
-      return '<div class="contact-card fade-in">' +
-        '<div class="contact-icon">' + (c.icon || '📧') + '</div>' +
-        '<div><h4>' + esc(c.title) + '</h4><p>' + esc(c.value || '') + '</p></div>' +
-      '</div>';
-    }).join('');
+
+    // 渲染 Footer 联系方式列表
+    var footerContactList = document.getElementById('footer-contact-list');
+    if (footerContactList) {
+      if (cards.length === 0) {
+        footerContactList.innerHTML = '<li style="color:var(--muted)">' + t('empty_contact') + '</li>';
+      } else {
+        footerContactList.innerHTML = cards.slice(0, 4).map(function (c) {
+          return '<li>' + (c.icon || '') + ' ' + esc(c.title) + ': ' + esc(c.value || '') + '</li>';
+        }).join('');
+      }
+    }
+
     observeAll(el);
   }
 
