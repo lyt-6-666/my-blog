@@ -510,7 +510,31 @@
     .qrcode-wrap img{max-width:160px;max-height:160px}
   }
   /* ===== Footer ===== */
-  footer{background:var(--bg2);border-top:1px solid var(--border);padding:2rem;text-align:center;color:var(--muted);font-size:.85rem}
+  footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 2rem 1.5rem;color:var(--muted);font-size:.85rem}
+  .footer-inner{max-width:1200px;margin:0 auto}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:2.5rem;margin-bottom:2rem}
+  .footer-col h4{color:var(--text);font-size:.9rem;font-weight:600;margin-bottom:.8rem}
+  .footer-col p{line-height:1.7;color:var(--text2);font-size:.83rem}
+  .footer-col ul{list-style:none}
+  .footer-col ul li{margin-bottom:.4rem}
+  .footer-col ul a{color:var(--text2);font-size:.83rem;transition:color .2s}
+  .footer-col ul a:hover{color:var(--accent)}
+  .footer-social{display:flex;gap:.6rem;margin-top:.6rem}
+  .footer-social a{width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all .2s}
+  .footer-social a:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+  .footer-social a svg{width:16px;height:16px}
+  .footer-bottom{border-top:1px solid var(--border);padding-top:1.2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem}
+  .footer-copy{font-size:.8rem}
+  .footer-links{display:flex;gap:1.2rem}
+  .footer-links a{font-size:.8rem;color:var(--text2);transition:color .2s}
+  .footer-links a:hover{color:var(--accent)}
+  @media(max-width:768px){
+    .footer-grid{grid-template-columns:1fr 1fr;gap:1.5rem}
+    .footer-bottom{flex-direction:column;text-align:center}
+  }
+  @media(max-width:480px){
+    .footer-grid{grid-template-columns:1fr}
+  }
 
   /* ===== 文章 Modal ===== */
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:2rem}
@@ -835,7 +859,56 @@
   </main>
 
   <footer>
-    <p id="footer-text">© 2026</p>
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <!-- 关于 -->
+        <div class="footer-col">
+          <h4 id="footer-logo-text">🔧 我的博客</h4>
+          <p id="footer-desc">专注于 CAD 自动化开发，分享技术经验与实用工具。</p>
+          <div class="footer-social" id="footer-social">
+            <a href="https://github.com/LYT-6-666" target="_blank" title="GitHub">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            </a>
+            <a href="https://gitee.com/LYT666999-luck" target="_blank" title="Gitee">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.984 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 11.984 0zm-.502 4.547c3.171 0 6.17 1.394 8.215 3.789l-1.638 1.482a9.53 9.53 0 0 0-6.577-2.572c-2.12 0-4.09.772-5.605 2.055l-1.64-1.484A11.6 11.6 0 0 1 11.482 4.547zM4.547 11.48a9.6 9.6 0 0 0 1.918 5.726l1.623-1.469a7.5 7.5 0 0 1-3.026-4.257H4.547zm7.437.502c1.586 0 3.02.632 4.074 1.658l1.633-1.474a9.56 9.56 0 0 0-5.707-1.884v1.7zm0 5.004c-2.12 0-4.09-.773-5.605-2.055l-1.64 1.484a11.6 11.6 0 0 0 9.51 4.547 9.53 9.53 0 0 0 6.577-2.572l-1.638-1.482a7.5 7.5 0 0 1-8.204-1.92zM12 14.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+            </a>
+            <a href="https://space.bilibili.com/" target="_blank" title="B站">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z"/></svg>
+            </a>
+          </div>
+        </div>
+        <!-- 快速导航 -->
+        <div class="footer-col">
+          <h4 data-i18n="footer_nav">快速导航</h4>
+          <ul>
+            <li><a href="#home" data-i18n="nav_home">首页</a></li>
+            <li><a href="#projects" data-i18n="nav_projects">作品</a></li>
+            <li><a href="#gallery" data-i18n="nav_gallery">相册</a></li>
+            <li><a href="#articles" data-i18n="nav_articles">文章</a></li>
+          </ul>
+        </div>
+        <!-- 更多 -->
+        <div class="footer-col">
+          <h4 data-i18n="footer_more">更多</h4>
+          <ul>
+            <li><a href="#about" data-i18n="nav_about">关于我</a></li>
+            <li><a href="#contact" data-i18n="nav_contact">联系方式</a></li>
+            <li><a href="#software" id="footer-software-link" class="hidden" data-i18n="nav_software">软件下载</a></li>
+          </ul>
+        </div>
+        <!-- 联系方式 -->
+        <div class="footer-col" id="footer-contact-col">
+          <h4 data-i18n="footer_contact">联系方式</h4>
+          <ul id="footer-contact-list"></ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy" id="footer-text">© 2026</div>
+        <div class="footer-links">
+          <a href="#home" data-i18n="footer_back_top">回到顶部 ↑</a>
+        </div>
+      </div>
+    </div>
   </footer>
 
   <!-- 文章 Modal -->
