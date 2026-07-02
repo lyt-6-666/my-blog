@@ -1413,7 +1413,7 @@
       var avatarContent = '';
       if (about.avatar_url) {
         // 使用统一的 getImgUrl 处理 CDN 和 WebP
-        avatarContent = '<img src="' + getImgUrl(about.avatar_url) + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%" class="img-loaded" alt="avatar" onerror="this.style.display=\'none\'">';
+        avatarContent = '<img src="' + getImgUrl(about.avatar_url) + '" class="img-loaded" alt="avatar" onerror="this.style.display=\'none\'">';
       } else {
         avatarContent = (about.avatar || '👤');
       }
