@@ -1433,8 +1433,11 @@
     if (layout && about.title) {
       var avatarContent = '';
       if (about.avatar_url) {
-        // 使用统一的 getImgUrl 处理 CDN 和 WebP
-        avatarContent = '<img src="' + getImgUrl(about.avatar_url) + '" class="img-loaded" alt="avatar" onerror="this.style.display=\'none\'">';
+        // 使用统一的 getImgUrl 处理 CDN 和 WebP，加上备用 CDN 降级
+        var avatarUrl = getImgUrl(about.avatar_url);
+        var avatarFallbacks = getImgFallbackUrls(about.avatar_url);
+        var avatarFallbackAttr = avatarFallbacks.length ? ' data-fallback="' + esc(avatarFallbacks.join('|')) + '"' : '';
+        avatarContent = '<img src="' + avatarUrl + '" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"' + avatarFallbackAttr + ' onerror="window._blogImgFallback(this)">';
       } else {
         avatarContent = (about.avatar || '👤');
       }
