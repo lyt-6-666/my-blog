@@ -99,6 +99,23 @@ body{font-family:'Noto Sans SC',-apple-system,'Microsoft YaHei',sans-serif;backg
 /* ===== 隐藏 ===== */
 .hidden{display:none!important}
 
+/* ===== 分屏编辑器 ===== */
+.editor-split-wrap{display:flex;gap:0;border:1.5px solid var(--border);border-radius:var(--r-sm);overflow:hidden;transition:border .2s}
+.editor-split-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.editor-split-wrap textarea{flex:1;border:none;border-radius:0;padding:14px;font-size:13.5px;line-height:1.7;resize:vertical;min-height:280px;outline:none;font-family:'Fira Code',monospace}
+.art-split-preview{flex:1;border-left:1px solid var(--border);overflow:auto;max-height:400px;padding:14px;background:#f8fafc;position:relative}
+.art-split-label{position:absolute;top:8px;right:12px;font-size:11px;color:var(--muted);background:var(--card);padding:2px 8px;border-radius:4px;border:1px solid var(--border)}
+.art-split-preview .md-view{font-size:13.5px;line-height:1.8}
+@media(max-width:900px){
+  .editor-split-wrap{flex-direction:column}
+  .art-split-preview{border-left:none;border-top:1px solid var(--border);max-height:300px}
+}
+
+/* ===== 保存按钮动画 ===== */
+.btn.loading{pointer-events:none;opacity:.7}
+.btn.loading::after{content:'';display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:btnSpin .6s linear infinite;margin-left:6px}
+@keyframes btnSpin{to{transform:rotate(360deg)}}
+
 /* ===== 工具栏 ===== */
 .toolbar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .toolbar button{padding:5px 12px;border:1px solid var(--border);background:#fff;border-radius:6px;cursor:pointer;font-size:12px;transition:all .2s;font-weight:500}
@@ -362,7 +379,7 @@ body{font-family:'Noto Sans SC',-apple-system,'Microsoft YaHei',sans-serif;backg
           <div class="form-field"><label>按钮2文字</label><input type="text" id="hero-btn2-text" placeholder="浏览文章"></div>
           <div class="form-field"><label>按钮2链接</label><input type="text" id="hero-btn2-link" placeholder="#articles"></div>
         </div>
-        <div class="btn-group"><button class="btn btn-primary" onclick="saveHero()">💾 保存 Hero</button></div>
+        <div class="btn-group"><button class="btn btn-primary" onclick="saveHero()" title="Ctrl+S">💾 保存 Hero</button></div>
       </div>
       <div class="card">
         <div class="card-title">📊 数据统计（3个）</div>
@@ -483,7 +500,15 @@ body{font-family:'Noto Sans SC',-apple-system,'Microsoft YaHei',sans-serif;backg
           <div id="existing-tags" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
         </div>
         <div class="form-field">
-          <label>正文（Markdown）</label>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <label style="margin:0">正文（Markdown）</label>
+            <div style="display:flex;gap:6px;align-items:center">
+              <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);cursor:pointer;font-weight:normal">
+                <input type="checkbox" id="art-preview-toggle" onchange="toggleArtSplitPreview()" style="width:auto"> 分屏预览
+              </label>
+              <span style="font-size:11px;color:var(--muted)" id="art-word-count"></span>
+            </div>
+          </div>
           <div class="toolbar">
             <button onclick="insertMd('**','**')">加粗</button>
             <button onclick="insertMd('*','*')">斜体</button>
@@ -494,7 +519,13 @@ body{font-family:'Noto Sans SC',-apple-system,'Microsoft YaHei',sans-serif;backg
             <button onclick="insertMd('!','[alt](url)')">图片</button>
             <button onclick="insertMd('```\n','\n```')">代码块</button>
           </div>
-          <textarea id="art-content" rows="14" placeholder="用 Markdown 写文章..."></textarea>
+          <div class="editor-split-wrap" id="editor-split-wrap">
+            <textarea id="art-content" rows="14" placeholder="用 Markdown 写文章..." oninput="updateArtPreviewAndCount()"></textarea>
+            <div id="art-split-preview" class="art-split-preview hidden">
+              <div class="art-split-label">预览</div>
+              <div class="md-view" id="art-split-content"></div>
+            </div>
+          </div>
         </div>
         <div class="form-row">
           <div class="form-field">
@@ -519,7 +550,7 @@ body{font-family:'Noto Sans SC',-apple-system,'Microsoft YaHei',sans-serif;backg
           <div class="preview-box md-view" id="art-preview"></div>
         </div>
         <div class="btn-group">
-          <button class="btn btn-success" onclick="saveArticle(true)">📢 发布</button>
+          <button class="btn btn-success" onclick="saveArticle(true)" title="Ctrl+S 或 Ctrl+Enter">📢 发布</button>
           <button class="btn btn-outline" onclick="saveArticle(false)">💾 存草稿</button>
           <button class="btn btn-outline" onclick="previewArt()">👁️ 预览</button>
         </div>
@@ -1911,6 +1942,7 @@ function editArticle(id) {
   artTags = a.tags ? a.tags.slice() : [];
   renderArtTags();
   renderExistingTags(); // 更新快速选择标签状态
+  updateArtPreviewAndCount();
   switchTab("articles", null);
 }
 async function saveArticle(publish) {
@@ -2031,6 +2063,10 @@ function clearArtForm() {
   $("art-doc-status").innerHTML = "";
   $("art-images-preview").innerHTML = "";
   $("art-images-files").value = "";
+  // 重置分屏预览
+  if ($("art-preview-toggle")) $("art-preview-toggle").checked = false;
+  if ($("art-split-preview")) $("art-split-preview").classList.add("hidden");
+  if ($("art-word-count")) $("art-word-count").textContent = "";
 }
 
 // ==================== 文章文档上传（支持关联图片） ====================
@@ -2137,6 +2173,95 @@ function insertMd(before, after) {
   var sel = ta.value.substring(s, e);
   ta.value = ta.value.substring(0, s) + before + sel + after + ta.value.substring(e);
   ta.focus(); ta.selectionStart = ta.selectionEnd = s + before.length;
+  updateArtPreviewAndCount();
+}
+
+// ==================== 分屏预览 ====================
+function toggleArtSplitPreview() {
+  var checked = $("art-preview-toggle").checked;
+  var preview = $("art-split-preview");
+  var wrap = $("editor-split-wrap");
+  if (checked) {
+    preview.classList.remove("hidden");
+    updateArtPreviewAndCount();
+  } else {
+    preview.classList.add("hidden");
+  }
+}
+
+function updateArtPreviewAndCount() {
+  var content = $("art-content").value;
+  // 字数统计
+  var charCount = content.replace(/\s/g, "").length;
+  var wordCountEl = $("art-word-count");
+  if (wordCountEl) {
+    var readMin = Math.max(1, Math.ceil(charCount / 400));
+    wordCountEl.textContent = charCount + " 字 · 约" + readMin + "分钟阅读";
+  }
+  // 分屏预览
+  var preview = $("art-split-preview");
+  if (preview && !preview.classList.contains("hidden")) {
+    var previewContent = $("art-split-content");
+    if (previewContent) {
+      previewContent.innerHTML = md2html(content);
+    }
+  }
+}
+
+// ==================== Ctrl+S 快捷键 ====================
+document.addEventListener("keydown", function(e) {
+  // Ctrl+S 保存
+  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+    e.preventDefault();
+    var activeTab = document.querySelector(".sidebar-nav a.active");
+    if (!activeTab) return;
+    var tabText = activeTab.textContent.trim();
+    if (tabText.indexOf("Hero") >= 0 || tabText.indexOf("主页") >= 0) {
+      saveHero();
+    } else if (tabText.indexOf("作品") >= 0 || tabText.indexOf("Projects") >= 0) {
+      saveProject();
+    } else if (tabText.indexOf("文章") >= 0 || tabText.indexOf("Articles") >= 0) {
+      saveArticle(true);
+    } else if (tabText.indexOf("关于") >= 0 || tabText.indexOf("About") >= 0) {
+      saveAbout();
+    } else if (tabText.indexOf("联系") >= 0 || tabText.indexOf("Contact") >= 0) {
+      saveContact();
+    } else if (tabText.indexOf("软件") >= 0 || tabText.indexOf("Download") >= 0) {
+      saveSoftware();
+    } else if (tabText.indexOf("站点") >= 0 || tabText.indexOf("Settings") >= 0) {
+      saveSite();
+    }
+    toast("💾 已保存 (Ctrl+S)");
+  }
+  // Ctrl+Enter 发布文章（仅在文章编辑区）
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    var artContent = $("art-content");
+    var artTitle = $("art-title");
+    if (artContent && artTitle && artTitle.value.trim() && document.activeElement === artContent) {
+      e.preventDefault();
+      saveArticle(true);
+    }
+  }
+});
+
+// ==================== 保存按钮动画 ====================
+function wrapSaveWithAnimation(fn, btnSelector) {
+  return async function() {
+    var btn = document.querySelector(btnSelector || ".btn-primary");
+    if (btn) {
+      btn.classList.add("loading");
+      btn._origText = btn.innerHTML;
+    }
+    try {
+      await fn.apply(this, arguments);
+    } finally {
+      if (btn) {
+        setTimeout(function() {
+          btn.classList.remove("loading");
+        }, 600);
+      }
+    }
+  };
 }
 // ==================== marked.js 预览（文章 Markdown） ====================
 function md2html(text) {
