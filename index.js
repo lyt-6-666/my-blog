@@ -2013,6 +2013,34 @@
   setTimeout(initTiltCards, 500);
 
   // ===========================
+  // 颜色调色板（所有动效共用）
+  // ===========================
+  var COLOR_PALETTE = [
+    { r: 99, g: 102, b: 241 },   // 靛蓝
+    { r: 139, g: 92, b: 246 },   // 紫色
+    { r: 236, g: 72, b: 153 },   // 粉红
+    { r: 244, g: 63, b: 94 },    // 玫瑰
+    { r: 249, g: 115, b: 22 },   // 橙色
+    { r: 245, g: 158, b: 11 },   // 琥珀
+    { r: 16, g: 185, b: 129 },   // 翡翠
+    { r: 6, g: 182, b: 212 },    // 青色
+    { r: 59, g: 130, b: 246 },   // 蓝色
+  ];
+  var _colorTick = 0;
+  function getColorByTime() {
+    _colorTick += 0.003;
+    var idx = Math.floor(_colorTick) % COLOR_PALETTE.length;
+    var next = (idx + 1) % COLOR_PALETTE.length;
+    var t = _colorTick - Math.floor(_colorTick);
+    // 线性插值
+    return {
+      r: Math.round(COLOR_PALETTE[idx].r + (COLOR_PALETTE[next].r - COLOR_PALETTE[idx].r) * t),
+      g: Math.round(COLOR_PALETTE[idx].g + (COLOR_PALETTE[next].g - COLOR_PALETTE[idx].g) * t),
+      b: Math.round(COLOR_PALETTE[idx].b + (COLOR_PALETTE[next].b - COLOR_PALETTE[idx].b) * t)
+    };
+  }
+
+  // ===========================
   // Hero 粒子动画（Canvas）
   // ===========================
   function initParticles() {
@@ -2076,7 +2104,7 @@
       var h2 = canvas.parentElement.offsetHeight;
       ctx.clearRect(0, 0, w2, h2);
 
-      var rgb = getAccentRGB();
+      var rgb = getColorByTime();
 
       // 更新和绘制粒子
       for (var i = 0; i < particles.length; i++) {
@@ -2181,7 +2209,7 @@
 
     function animate() {
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-      var rgb = getAccentColor();
+      var rgb = getColorByTime();
 
       for (var i = particles.length - 1; i >= 0; i--) {
         var p = particles[i];
