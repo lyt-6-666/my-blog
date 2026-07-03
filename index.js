@@ -311,6 +311,9 @@
       video_title: '观看视频',
       // 关于页
       timeline_title: '经历',
+      // 其他
+      scroll_down: '向下滚动',
+      reading_time: '预计阅读 {n} 分钟',
       // 主题名称
       theme_indigo: '靛蓝',
       theme_rose: '玫瑰',
@@ -383,6 +386,9 @@
       video_title: 'Watch Video',
       // 关于页
       timeline_title: 'Experience',
+      // 其他
+      scroll_down: 'Scroll Down',
+      reading_time: '{n} min read',
       // 主题名称
       theme_indigo: 'Indigo',
       theme_rose: 'Rose',
@@ -550,6 +556,19 @@
       // 进度条
       var sb = document.getElementById('scroll-bar');
       if (sb) sb.style.width = (window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100) + '%';
+      // 阅读进度条（文章弹窗内）
+      var rp = document.getElementById('reading-progress');
+      var artModal = document.getElementById('art-modal');
+      if (rp && artModal && artModal.classList.contains('show')) {
+        var modalBody = artModal.querySelector('.modal-body');
+        if (modalBody) {
+          var scrollTop = modalBody.scrollTop;
+          var scrollHeight = modalBody.scrollHeight - modalBody.clientHeight;
+          rp.style.width = (scrollHeight > 0 ? (scrollTop / scrollHeight * 100) : 0) + '%';
+        }
+      } else if (rp) {
+        rp.style.width = '0%';
+      }
       // 返回顶部
       var bt = document.getElementById('back-top');
       if (bt) bt.classList.toggle('show', window.scrollY > 300);
@@ -1657,9 +1676,19 @@
     if (!a) return;
     var modal = document.getElementById('art-modal');
     var content = document.getElementById('art-modal-content');
+    var readTimeEl = document.getElementById('art-reading-time');
     if (!modal || !content) return;
     var date = new Date(a.updated_at || a.created_at || Date.now()).toLocaleDateString('zh-CN');
     var tags = (a.tags || []).map(function (t) { return '<span style="background:var(--soft);color:var(--accent);padding:2px 8px;border-radius:6px;font-size:.78rem;">' + esc(t) + '</span>'; }).join(' ');
+
+    // 计算阅读时间（中文按字数，英文按单词）
+    var rawText = a.content || '';
+    var charCount = rawText.replace(/\s/g, '').length;
+    var readMin = Math.max(1, Math.ceil(charCount / 400));
+    if (readTimeEl) {
+      readTimeEl.innerHTML = '📖 ' + t('reading_time').replace('{n}', readMin);
+    }
+
     // 优先从 doc_url 加载文档内容
     if (a.doc_url) {
       content.innerHTML = '<div style="color:var(--muted);font-size:.88rem;">' + t('loading') + '</div>';
@@ -1679,6 +1708,18 @@
     }
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
+
+    // 监听弹窗滚动以更新阅读进度
+    var modalBody = modal.querySelector('.modal-body');
+    if (modalBody) {
+      modalBody.onscroll = function() {
+        var rp = document.getElementById('reading-progress');
+        if (!rp) return;
+        var scrollTop = modalBody.scrollTop;
+        var scrollHeight = modalBody.scrollHeight - modalBody.clientHeight;
+        rp.style.width = (scrollHeight > 0 ? (scrollTop / scrollHeight * 100) : 0) + '%';
+      };
+    }
   }
 
   // 加载外部文档内容
@@ -1698,28 +1739,74 @@
     var modal = document.getElementById('art-modal');
     if (modal) modal.classList.remove('show');
     document.body.style.overflow = '';
+    var rp = document.getElementById('reading-progress');
+    if (rp) rp.style.width = '0%';
   }
 
   // ===========================
-  // 灯箱
+  // 灯箱（支持上下切换）
   // ===========================
+  var _lbCurrentIndex = -1;
+  var _lbList = [];
+
   function openLightbox(item) {
     var lb = document.getElementById('lightbox');
     var img = document.getElementById('lb-img');
     var cap = document.getElementById('lb-caption');
+    var counter = document.getElementById('lb-counter');
     if (!lb || !img) return;
+
+    // 构建当前筛选后的图片列表
+    _lbList = _galData.filter(function (g) { return g.image_url; });
+    _lbCurrentIndex = _lbList.findIndex(function (g) { return g.id === item.id; });
+
+    showLightboxItem(_lbCurrentIndex);
+    lb.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function showLightboxItem(idx) {
+    if (idx < 0 || idx >= _lbList.length) return;
+    _lbCurrentIndex = idx;
+    var item = _lbList[idx];
+    var img = document.getElementById('lb-img');
+    var cap = document.getElementById('lb-caption');
+    var counter = document.getElementById('lb-counter');
     img.src = getImgUrl(item.image_url);
     img.alt = item.title || '';
     if (cap) cap.innerHTML = '<strong>' + esc(item.title || '') + '</strong>' + (item.description ? '<br>' + esc(item.description) : '');
-    lb.classList.add('show');
-    document.body.style.overflow = 'hidden';
+    if (counter) counter.textContent = (idx + 1) + ' / ' + _lbList.length;
+  }
+
+  function lbPrev() {
+    if (_lbCurrentIndex > 0) showLightboxItem(_lbCurrentIndex - 1);
+  }
+
+  function lbNext() {
+    if (_lbCurrentIndex < _lbList.length - 1) showLightboxItem(_lbCurrentIndex + 1);
   }
 
   function closeLightbox() {
     var lb = document.getElementById('lightbox');
     if (lb) lb.classList.remove('show');
     document.body.style.overflow = '';
+    _lbCurrentIndex = -1;
   }
+
+  // 灯箱按钮事件
+  window.addEventListener('load', function() {
+    var lbPrevBtn = document.getElementById('lb-prev');
+    var lbNextBtn = document.getElementById('lb-next');
+    if (lbPrevBtn) lbPrevBtn.addEventListener('click', function(e) { e.stopPropagation(); lbPrev(); });
+    if (lbNextBtn) lbNextBtn.addEventListener('click', function(e) { e.stopPropagation(); lbNext(); });
+    // 键盘左右切换
+    document.addEventListener('keydown', function(e) {
+      var lb = document.getElementById('lightbox');
+      if (!lb || !lb.classList.contains('show')) return;
+      if (e.key === 'ArrowLeft') lbPrev();
+      if (e.key === 'ArrowRight') lbNext();
+    });
+  });
 
   // ===========================
   // Markdown → HTML（使用 marked.js）
