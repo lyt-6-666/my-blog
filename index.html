@@ -116,23 +116,33 @@
 
   /* ========== 高级动效系统 ========== */
 
-  /* 背景光晕 - 呼吸式流动 */
+  /* 背景光晕 - 呼吸式流动 + 颜色轮换 */
   .bg-orb{
     position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;
   }
   .bg-orb::before{
     content:'';position:absolute;width:600px;height:600px;
     top:-200px;left:-200px;
-    background:radial-gradient(circle,var(--accent) 0%,transparent 70%);
+    background:radial-gradient(circle,#6366f1 0%,transparent 70%);
     opacity:.15;filter:blur(80px);
-    animation:orbFloat1 15s ease-in-out infinite;
+    animation:orbFloat1 15s ease-in-out infinite, orbColor1 12s ease-in-out infinite;
   }
   .bg-orb::after{
     content:'';position:absolute;width:500px;height:500px;
     bottom:-150px;right:-150px;
-    background:radial-gradient(circle,var(--accent-l) 0%,transparent 70%);
+    background:radial-gradient(circle,#ec4899 0%,transparent 70%);
     opacity:.12;filter:blur(60px);
-    animation:orbFloat2 18s ease-in-out infinite;
+    animation:orbFloat2 18s ease-in-out infinite, orbColor2 10s ease-in-out infinite;
+  }
+  @keyframes orbColor1{
+    0%,100%{background:radial-gradient(circle,#6366f1 0%,transparent 70%)}
+    33%{background:radial-gradient(circle,#ec4899 0%,transparent 70%)}
+    66%{background:radial-gradient(circle,#10b981 0%,transparent 70%)}
+  }
+  @keyframes orbColor2{
+    0%,100%{background:radial-gradient(circle,#ec4899 0%,transparent 70%)}
+    33%{background:radial-gradient(circle,#f59e0b 0%,transparent 70%)}
+    66%{background:radial-gradient(circle,#6366f1 0%,transparent 70%)}
   }
 
   /* 鼠标拖尾粒子画布 */
@@ -140,13 +150,19 @@
 
   /* 浮动几何装饰 */
   .float-shapes{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-  .float-shape{position:absolute;opacity:.06;animation:floatDrift linear infinite}
-  .float-shape:nth-child(1){width:60px;height:60px;border:2px solid var(--accent);border-radius:50%;top:10%;left:5%;animation-duration:25s}
-  .float-shape:nth-child(2){width:40px;height:40px;border:2px solid var(--accent-l);top:30%;right:8%;animation-duration:30s;animation-delay:-5s}
-  .float-shape:nth-child(3){width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:35px solid var(--accent);top:60%;left:12%;animation-duration:22s;animation-delay:-8s}
-  .float-shape:nth-child(4){width:50px;height:50px;border:2px solid var(--accent);transform:rotate(45deg);top:75%;right:15%;animation-duration:28s;animation-delay:-12s}
-  .float-shape:nth-child(5){width:30px;height:30px;border:2px solid var(--accent-l);border-radius:50%;top:45%;left:50%;animation-duration:35s;animation-delay:-3s}
-  .float-shape:nth-child(6){width:45px;height:45px;border:2px solid var(--accent);top:85%;left:40%;animation-duration:20s;animation-delay:-15s}
+  .float-shape{position:absolute;opacity:.06;animation:floatDrift linear infinite,shapeColor 8s ease-in-out infinite}
+  .float-shape:nth-child(1){width:60px;height:60px;border:2px solid #6366f1;border-radius:50%;top:10%;left:5%;animation-duration:25s,8s}
+  .float-shape:nth-child(2){width:40px;height:40px;border:2px solid #ec4899;top:30%;right:8%;animation-duration:30s,10s;animation-delay:-5s,-2s}
+  .float-shape:nth-child(3){width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:35px solid #10b981;top:60%;left:12%;animation-duration:22s,9s;animation-delay:-8s,-4s}
+  .float-shape:nth-child(4){width:50px;height:50px;border:2px solid #f59e0b;transform:rotate(45deg);top:75%;right:15%;animation-duration:28s,11s;animation-delay:-12s,-3s}
+  .float-shape:nth-child(5){width:30px;height:30px;border:2px solid #6366f1;border-radius:50%;top:45%;left:50%;animation-duration:35s,7s;animation-delay:-1s,-5s}
+  .float-shape:nth-child(6){width:45px;height:45px;border:2px solid #ec4899;top:85%;left:40%;animation-duration:20s,12s;animation-delay:-15s,-6s}
+  @keyframes shapeColor{
+    0%,100%{border-color:#6366f1}
+    25%{border-color:#ec4899}
+    50%{border-color:#10b981}
+    75%{border-color:#f59e0b}
+  }
   @keyframes floatDrift{
     0%{transform:translateY(0) rotate(0deg);opacity:.06}
     25%{transform:translateY(-30px) rotate(90deg);opacity:.08}
@@ -158,12 +174,14 @@
   /* 渐变背景流动 */
   #gradient-flow{position:fixed;inset:0;pointer-events:none;z-index:0;
     background:linear-gradient(135deg,
-      rgba(99,102,241,.03) 0%,
-      rgba(139,92,246,.02) 25%,
-      rgba(217,70,239,.03) 50%,
-      rgba(99,102,241,.02) 75%,
-      rgba(139,92,246,.03) 100%);
+      rgba(99,102,241,.04) 0%,
+      rgba(236,72,153,.03) 20%,
+      rgba(16,185,129,.04) 40%,
+      rgba(245,158,11,.03) 60%,
+      rgba(99,102,241,.04) 80%,
+      rgba(6,182,212,.03) 100%);
     background-size:400% 400%;
+    animation:gradientFlow 25s ease infinite}
     animation:gradientFlow 20s ease infinite}
   @keyframes gradientFlow{
     0%{background-position:0% 50%}
