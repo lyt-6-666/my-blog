@@ -714,6 +714,36 @@
   .contact-card::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),var(--soft) 0%,transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}
   .contact-card:hover::after{opacity:1}
 
+  /* ===== 向下滚动指示 ===== */
+  .scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;cursor:pointer;opacity:.6;transition:opacity .3s;z-index:2}
+  .scroll-hint:hover{opacity:1}
+  .scroll-mouse{width:26px;height:40px;border:2px solid var(--text2);border-radius:13px;display:flex;justify-content:center;padding-top:8px}
+  .scroll-wheel{width:3px;height:8px;background:var(--text2);border-radius:2px;animation:scrollBounce 1.5s ease-in-out infinite}
+  @keyframes scrollBounce{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(8px);opacity:.3}}
+  .scroll-text{font-size:.72rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+  /* ===== 波浪分隔线 ===== */
+  .wave-divider{position:relative;margin-top:-1px;line-height:0}
+  .wave-divider svg{display:block;width:100%;height:60px}
+  .wave-flip{transform:rotate(180deg);margin-bottom:-1px;margin-top:0}
+
+  /* ===== 文章阅读进度条 ===== */
+  #reading-progress{position:fixed;top:0;left:0;height:3px;background:var(--g1);z-index:3001;width:0%;transition:width .1s;pointer-events:none;border-radius:0 2px 2px 0}
+
+  /* ===== 文章弹窗头部 ===== */
+  .modal-header{position:sticky;top:0;background:var(--card);padding:1rem 2.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;z-index:1}
+  .reading-time{font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:4px}
+
+  /* ===== 灯箱切换按钮 ===== */
+  .lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:1}
+  .lb-nav:hover{background:rgba(255,255,255,.3);transform:translateY(-50%) scale(1.1)}
+  .lb-prev{left:1.5rem}
+  .lb-next{right:1.5rem}
+  .lb-counter{position:absolute;bottom:5rem;color:rgba(255,255,255,.7);font-size:.85rem}
+
+  /* ===== 导航栏滚动毛玻璃 ===== */
+  nav.scrolled{backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);background:rgba(255,255,255,.72)!important;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+
   </style>
 </head>
 <body>
@@ -796,7 +826,17 @@
         <div class="hero-btns" id="hero-btns"></div>
         <div class="hero-stats" id="hero-stats" style="display:none"></div>
       </div>
+      <!-- 向下滚动指示 -->
+      <div class="scroll-hint" onclick="document.getElementById('projects').scrollIntoView({behavior:'smooth'})">
+        <span class="scroll-mouse">
+          <span class="scroll-wheel"></span>
+        </span>
+        <span class="scroll-text" data-i18n="scroll_down">向下滚动</span>
+      </div>
     </section>
+
+    <!-- 波浪分隔线 -->
+    <div class="wave-divider"><svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path d="M0,40 C360,100 1080,0 1440,60 L1440,100 L0,100 Z" fill="var(--bg2)"/></svg></div>
 
     <!-- 作品 -->
     <section id="projects" class="section">
@@ -823,6 +863,9 @@
         </div>
       </div>
     </section>
+
+    <!-- 波浪分隔线 -->
+    <div class="wave-divider wave-flip"><svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path d="M0,60 C480,0 960,100 1440,40 L1440,100 L0,100 Z" fill="var(--bg2)"/></svg></div>
 
     <!-- 相册 -->
     <section id="gallery" class="section gallery-section">
@@ -934,10 +977,16 @@
     </div>
   </footer>
 
+  <!-- 阅读进度条 -->
+  <div id="reading-progress"></div>
+
   <!-- 文章 Modal -->
   <div class="modal" id="art-modal">
     <div class="modal-box">
-      <button class="modal-close" id="art-close">×</button>
+      <div class="modal-header">
+        <div class="reading-time" id="art-reading-time"></div>
+        <button class="modal-close" id="art-close">×</button>
+      </div>
       <div class="modal-body">
         <div id="art-modal-content" class="md-content"></div>
       </div>
@@ -947,7 +996,10 @@
   <!-- 灯箱 -->
   <div class="lightbox" id="lightbox">
     <button class="lb-close" id="lb-close">×</button>
+    <button class="lb-nav lb-prev" id="lb-prev">‹</button>
+    <button class="lb-nav lb-next" id="lb-next">›</button>
     <img id="lb-img" src="" alt="">
+    <div class="lb-counter" id="lb-counter"></div>
     <div class="lb-caption" id="lb-caption"></div>
   </div>
 
