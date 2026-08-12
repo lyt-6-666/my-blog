@@ -315,6 +315,61 @@ body{font-family:'Noto Sans SC',-apple-system,'Microsoft YaHei',sans-serif;backg
 .backup-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;word-break:break-all}
 .backup-meta{font-size:11px;color:var(--text2);display:flex;gap:14px;flex-wrap:wrap}
 .backup-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* ===== 数据大屏 ===== */
+.dash-hero{background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);border-radius:16px;padding:32px;margin-bottom:24px;color:#fff;position:relative;overflow:hidden}
+.dash-hero::before{content:'';position:absolute;top:-50%;right:-20%;width:400px;height:400px;background:radial-gradient(circle,rgba(99,102,241,.2) 0%,transparent 70%);border-radius:50%}
+.dash-hero::after{content:'';position:absolute;bottom:-30%;left:-10%;width:300px;height:300px;background:radial-gradient(circle,rgba(236,72,153,.15) 0%,transparent 70%);border-radius:50%}
+.dash-hero-title{font-size:20px;font-weight:700;margin-bottom:6px;position:relative;z-index:1}
+.dash-hero-sub{font-size:13px;color:rgba(255,255,255,.6);position:relative;z-index:1}
+.dash-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
+.dash-stat{background:var(--card);border-radius:14px;padding:20px 16px;border:1px solid rgba(0,0,0,.04);box-shadow:var(--sh);text-align:center;transition:all .25s;position:relative;overflow:hidden}
+.dash-stat:hover{transform:translateY(-4px);box-shadow:var(--sh-lg)}
+.dash-stat.clickable{cursor:pointer}
+.dash-stat.clickable:active{transform:translateY(-1px) scale(.98)}
+.dash-stat::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0}
+.dash-stat:nth-child(1)::after{background:linear-gradient(90deg,#6366f1,#818cf8)}
+.dash-stat:nth-child(2)::after{background:linear-gradient(90deg,#10b981,#34d399)}
+.dash-stat:nth-child(3)::after{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.dash-stat:nth-child(4)::after{background:linear-gradient(90deg,#ec4899,#f472b6)}
+.dash-stat:nth-child(5)::after{background:linear-gradient(90deg,#06b6d4,#22d3ee)}
+.dash-stat:nth-child(6)::after{background:linear-gradient(90deg,#8b5cf6,#c084fc)}
+.dash-stat-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 12px}
+.dash-stat:nth-child(1) .dash-stat-icon{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(99,102,241,.05))}
+.dash-stat:nth-child(2) .dash-stat-icon{background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.05))}
+.dash-stat:nth-child(3) .dash-stat-icon{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.05))}
+.dash-stat:nth-child(4) .dash-stat-icon{background:linear-gradient(135deg,rgba(236,72,153,.12),rgba(236,72,153,.05))}
+.dash-stat:nth-child(5) .dash-stat-icon{background:linear-gradient(135deg,rgba(6,182,212,.12),rgba(6,182,212,.05))}
+.dash-stat:nth-child(6) .dash-stat-icon{background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(139,92,246,.05))}
+.dash-stat-num{font-size:28px;font-weight:800;color:var(--text);line-height:1.2}
+.dash-stat-label{font-size:12px;color:var(--text2);margin-top:4px;font-weight:500}
+.dash-stat-sub{font-size:11px;color:var(--muted);margin-top:8px;display:flex;justify-content:center;gap:10px}
+.dash-stat-sub span{display:flex;align-items:center;gap:3px}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.dash-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px}
+@media(max-width:1100px){.dash-stats{grid-template-columns:repeat(3,1fr)}.dash-grid-3{grid-template-columns:1fr}}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr}.dash-stats{grid-template-columns:repeat(2,1fr)}}
+.dash-card{background:var(--card);border-radius:14px;padding:22px;border:1px solid rgba(0,0,0,.04);box-shadow:var(--sh)}
+.dash-card-title{font-size:14px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.dash-card-title::before{content:'';width:4px;height:16px;background:var(--g1);border-radius:2px}
+.dash-tag{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:50px;font-size:12px;font-weight:500;background:var(--accent-bg);color:var(--accent);border:1px solid transparent;transition:all .2s}
+.dash-tag:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 2px 8px rgba(99,102,241,.15)}
+.dash-tag .count{font-size:10px;opacity:.6}
+.dash-storage-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.dash-storage-label{font-size:12px;color:var(--text2);width:70px;flex-shrink:0}
+.dash-storage-bar{flex:1;height:10px;border-radius:5px;background:#f1f5f9;overflow:hidden}
+.dash-storage-fill{height:100%;border-radius:5px;transition:width .8s cubic-bezier(.16,1,.3,1)}
+.dash-storage-val{font-size:12px;color:var(--text2);width:60px;text-align:right;flex-shrink:0}
+.dash-log-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:12px;transition:background .15s}
+.dash-log-item:last-child{border-bottom:none}
+.dash-log-item:hover{background:#f8fafc;margin:0 -8px;padding:10px 8px;border-radius:6px}
+.dash-log-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:#f8fafc}
+.dash-log-text{flex:1;color:var(--text2);line-height:1.4}
+.dash-log-time{color:var(--muted);font-size:11px;flex-shrink:0;background:#f8fafc;padding:2px 8px;border-radius:4px}
+.dash-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.dash-summary-item{text-align:center;padding:12px;background:#f8fafc;border-radius:10px}
+.dash-summary-num{font-size:20px;font-weight:700;color:var(--text)}
+.dash-summary-label{font-size:11px;color:var(--muted);margin-top:2px}
 </style>
 
 <!-- 管理后台主体 -->
@@ -322,7 +377,8 @@ body{font-family:'Noto Sans SC',-apple-system,'Microsoft YaHei',sans-serif;backg
   <div class="sidebar">
     <h2><span>📝</span> 博客 CMS</h2>
     <nav class="sidebar-nav">
-      <a class="active" onclick="switchTab('hero',this)">🎯 主页 Hero</a>
+      <a class="active" onclick="switchTab('dashboard',this)">📊 数据大屏</a>
+      <a onclick="switchTab('hero',this)">🎯 主页 Hero</a>
       <a onclick="switchTab('projects',this)">🚀 作品展示</a>
       <a onclick="switchTab('gallery',this)">🖼️ 相册管理</a>
       <a onclick="switchTab('articles',this)">📄 文章管理</a>
@@ -341,7 +397,7 @@ body{font-family:'Noto Sans SC',-apple-system,'Microsoft YaHei',sans-serif;backg
 
   <div class="main">
     <!-- ===== Hero ===== -->
-    <div id="tab-hero" class="tab-content">
+    <div id="tab-hero" class="tab-content hidden">
       <div class="page-title">🎯 主页 Hero 区域</div>
       <div class="card">
         <div class="form-field">
@@ -796,6 +852,48 @@ body{font-family:'Noto Sans SC',-apple-system,'Microsoft YaHei',sans-serif;backg
       </div>
     </div>
 
+    <!-- ===== 数据大屏 ===== -->
+    <div id="tab-dashboard" class="tab-content">
+      <!-- 深色头部 -->
+      <div class="dash-hero">
+        <div class="dash-hero-title">📊 博客数据概览</div>
+        <div class="dash-hero-sub">实时查看博客所有模块的数据统计</div>
+      </div>
+      <!-- 统计卡片 -->
+      <div class="dash-stats" id="dash-stats"></div>
+      <!-- 第一行：饼图 + 标签云 -->
+      <div class="dash-grid">
+        <div class="dash-card">
+          <div class="dash-card-title">📂 内容分布</div>
+          <canvas id="dash-pie-chart" width="300" height="200"></canvas>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-title">🏷️ 标签云</div>
+          <div id="dash-tag-cloud" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0"></div>
+        </div>
+      </div>
+      <!-- 第二行：存储 + 柱状图 + 备份 -->
+      <div class="dash-grid-3">
+        <div class="dash-card">
+          <div class="dash-card-title">📁 存储用量</div>
+          <div id="dash-storage"></div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-title">📈 内容趋势</div>
+          <canvas id="dash-bar-chart" width="280" height="180"></canvas>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-title">💾 备份概览</div>
+          <div id="dash-backup-info"></div>
+        </div>
+      </div>
+      <!-- 第三行：最近操作 -->
+      <div class="dash-card">
+        <div class="dash-card-title">📝 最近操作</div>
+        <div id="dash-recent-logs" style="max-height:260px;overflow-y:auto"></div>
+      </div>
+    </div>
+
     <!-- ===== 操作日志 ===== -->
     <div id="tab-logs" class="tab-content hidden">
       <div class="page-title">📋 操作日志</div>
@@ -897,6 +995,8 @@ function previewBlog() {
 // ==================== 页面加载 ====================
 document.addEventListener("DOMContentLoaded", function() {
   loadAllData();
+  // 默认加载数据大屏
+  setTimeout(function(){ loadDashboard(); }, 500);
 });
 
 // ==================== 软件下载相关 ====================
@@ -3293,6 +3393,324 @@ function escHtml(str) {
   if (!str) return '';
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
+
+// ==================== 数据大屏 ====================
+async function loadDashboard() {
+  try {
+    // 加载所有数据
+    var files = ['hero','projects','about','contact','config','articles','gallery','categories'];
+    var results = {};
+    for (var i = 0; i < files.length; i++) {
+      try {
+        var r = await fetch(DATA_BASE + '/' + files[i] + '.json');
+        results[files[i]] = r.ok ? await r.json() : null;
+      } catch(e) { results[files[i]] = null; }
+    }
+
+    var articles = results.articles || [];
+    var projects = results.projects || [];
+    var gallery = results.gallery || [];
+    var about = results.about || {};
+    var contact = results.contact || {};
+    var config = results.config || {};
+    var categories = results.categories || {};
+
+    // 文章统计
+    var published = articles.filter(function(a){ return a.published !== false; });
+    var drafts = articles.filter(function(a){ return a.published === false; });
+    // 所有标签
+    var allTags = {};
+    articles.forEach(function(a){ (a.tags||[]).forEach(function(tag){ allTags[tag] = (allTags[tag]||0) + 1; }); });
+    // 技能数
+    var skillCount = (about.skills || []).length;
+    // 联系方式数
+    var contactCount = (contact.cards || []).length;
+    // 时间线数
+    var timelineCount = (about.timeline || []).length;
+    // 分类数
+    var artCatCount = (categories.article_categories || []).length;
+    var galCatCount = (categories.gallery_categories || []).length;
+
+    // ===== 统计卡片 =====
+    var statsHtml = '';
+    var statsData = [
+      { icon: '📄', num: articles.length, label: '文章总数', tab: 'articles', sub: '<span>✅ ' + published.length + ' 已发布</span><span>📝 ' + drafts.length + ' 草稿</span>' },
+      { icon: '🚀', num: projects.length, label: '作品数量', tab: 'projects', sub: '' },
+      { icon: '🖼️', num: gallery.length, label: '相册图片', tab: 'gallery', sub: '<span>📂 ' + galCatCount + ' 个分类</span>' },
+      { icon: '🏷️', num: Object.keys(allTags).length, label: '标签总数', tab: 'articles', sub: '' },
+      { icon: '🛠️', num: skillCount, label: '技能标签', tab: 'about', sub: '<span>📅 ' + timelineCount + ' 条经历</span>' },
+      { icon: '📞', num: contactCount, label: '联系方式', tab: 'contact', sub: '' }
+    ];
+    statsData.forEach(function(s) {
+      statsHtml += '<div class="dash-stat clickable" data-tab="' + s.tab + '">' +
+        '<div class="dash-stat-icon">' + s.icon + '</div>' +
+        '<div class="dash-stat-num">' + s.num + '</div>' +
+        '<div class="dash-stat-label">' + s.label + '</div>' +
+        (s.sub ? '<div class="dash-stat-sub">' + s.sub + '</div>' : '') +
+      '</div>';
+    });
+    $('dash-stats').innerHTML = statsHtml;
+
+    // ===== 标签云 =====
+    var tagCloud = $('dash-tag-cloud');
+    var tagEntries = Object.entries(allTags).sort(function(a,b){ return b[1] - a[1]; });
+    if (tagEntries.length === 0) {
+      tagCloud.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px;text-align:center">暂无标签</div>';
+    } else {
+      tagCloud.innerHTML = tagEntries.map(function(t) {
+        var size = Math.min(16, 11 + t[1] * 2);
+        return '<span class="dash-tag" style="font-size:' + size + 'px">' + escHtml(t[0]) + ' <span class="count">×' + t[1] + '</span></span>';
+      }).join('');
+    }
+
+    // ===== 文件存储 =====
+    var storageEl = $('dash-storage');
+    try {
+      var imgRes = await fetch('/api/files?type=images');
+      var imgData = await imgRes.json();
+      var docRes = await fetch('/api/files?type=docs');
+      var docData = await docRes.json();
+      var imgCount = imgData.files ? imgData.files.length : 0;
+      var docCount = docData.files ? docData.files.length : 0;
+      var imgSize = 0, docSize = 0;
+      if (imgData.files) imgData.files.forEach(function(f){ imgSize += f.size || 0; });
+      if (docData.files) docData.files.forEach(function(f){ docSize += f.size || 0; });
+      var totalSize = imgSize + docSize;
+      var maxSize = 50 * 1024 * 1024; // 假设50MB上限
+      var pct = Math.min(100, (totalSize / maxSize * 100));
+      var imgPct = totalSize > 0 ? (imgSize / totalSize * 100) : 0;
+      var docPct = totalSize > 0 ? (docSize / totalSize * 100) : 0;
+      storageEl.innerHTML =
+        '<div class="dash-storage-row">' +
+          '<div class="dash-storage-label">📷 图片</div>' +
+          '<div class="dash-storage-bar"><div class="dash-storage-fill" style="width:' + imgPct + '%;background:linear-gradient(90deg,#6366f1,#818cf8)"></div></div>' +
+          '<div class="dash-storage-val">' + imgCount + ' 个 · ' + (imgSize/1024).toFixed(1) + 'KB</div>' +
+        '</div>' +
+        '<div class="dash-storage-row">' +
+          '<div class="dash-storage-label">📄 文档</div>' +
+          '<div class="dash-storage-bar"><div class="dash-storage-fill" style="width:' + docPct + '%;background:linear-gradient(90deg,#10b981,#34d399)"></div></div>' +
+          '<div class="dash-storage-val">' + docCount + ' 个 · ' + (docSize/1024).toFixed(1) + 'KB</div>' +
+        '</div>' +
+        '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;font-size:12px;color:var(--text2);display:flex;justify-content:space-between">' +
+          '<span>总占用</span><span style="font-weight:600">' + (totalSize/1024).toFixed(1) + ' KB / 50 MB</span>' +
+        '</div>' +
+        '<div class="dash-storage-bar" style="margin-top:6px"><div class="dash-storage-fill" style="width:' + pct + '%;background:linear-gradient(90deg,' + (pct > 80 ? '#ef4444,#dc2626' : pct > 50 ? '#f59e0b,#fbbf24' : '#10b981,#34d399') + ')"></div></div>';
+    } catch(e) {
+      storageEl.innerHTML = '<div style="color:var(--muted);font-size:13px">加载存储信息失败</div>';
+    }
+
+    // ===== 最近操作日志 =====
+    var logsEl = $('dash-recent-logs');
+    try {
+      var logRes = await fetch('/api/logs?limit=8');
+      var logData = await logRes.json();
+      if (logData.success && logData.logs.length > 0) {
+        var logIcons = { save:'💾', upload:'📤', sync_start:'🚀', sync_done:'✅', logs_clear:'🗑️', save_error:'❌', delete:'🗑️' };
+        var logLabels = { save:'保存数据', upload:'上传文件', sync_start:'开始同步', sync_done:'同步完成', logs_clear:'清空日志', save_error:'保存失败', delete:'删除文件' };
+        logsEl.innerHTML = logData.logs.map(function(log) {
+          var icon = logIcons[log.action] || '📌';
+          var label = logLabels[log.action] || log.action;
+          var time = '';
+          try { var d = new Date(log.time); time = d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0'); } catch(e){}
+          return '<div class="dash-log-item">' +
+            '<div class="dash-log-icon">' + icon + '</div>' +
+            '<div class="dash-log-text">' + label + (log.detail ? ' · ' + escHtml(log.detail.substring(0,40)) : '') + '</div>' +
+            '<div class="dash-log-time">' + time + '</div>' +
+          '</div>';
+        }).join('');
+      } else {
+        logsEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">暂无操作记录</div>';
+      }
+    } catch(e) {
+      logsEl.innerHTML = '<div style="color:var(--muted);font-size:13px">加载日志失败</div>';
+    }
+
+    // ===== 备份状态 =====
+    var backupEl = $('dash-backup-info');
+    try {
+      var bRes = await fetch('/api/backup/list');
+      var bData = await bRes.json();
+      if (bData.success) {
+        var backups = bData.backups;
+        var manualCount = backups.filter(function(b){ return b.type === 'manual'; }).length;
+        var autoCount = backups.filter(function(b){ return b.type === 'auto'; }).length;
+        var lastBackup = backups.length > 0 ? backups[0] : null;
+        var lastTime = lastBackup ? new Date(lastBackup.time).toLocaleString('zh-CN') : '无';
+        var totalBackupSize = backups.reduce(function(sum,b){ return sum + b.totalSize; }, 0);
+        var lastTimeShort = lastBackup ? (function(){ var d = new Date(lastBackup.time); return (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0'); })() : '无';
+        backupEl.innerHTML =
+          '<div class="dash-summary">' +
+            '<div class="dash-summary-item"><div class="dash-summary-num" style="color:#3b82f6">' + manualCount + '</div><div class="dash-summary-label">手动备份</div></div>' +
+            '<div class="dash-summary-item"><div class="dash-summary-num" style="color:#6b7280">' + autoCount + '</div><div class="dash-summary-label">自动备份</div></div>' +
+            '<div class="dash-summary-item"><div class="dash-summary-num">' + (totalBackupSize/1024).toFixed(1) + '<span style="font-size:12px;font-weight:400">KB</span></div><div class="dash-summary-label">总占用</div></div>' +
+          '</div>' +
+          '<div style="margin-top:12px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px">' +
+            '<span>🕐</span><span>最近备份: ' + lastTimeShort + '</span>' +
+          '</div>';
+      } else {
+        backupEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">暂无备份</div>';
+      }
+    } catch(e) {
+      backupEl.innerHTML = '<div style="color:var(--muted);font-size:13px">加载备份信息失败</div>';
+    }
+
+    // ===== 饼图（Canvas） =====
+    drawPieChart(articles.length, projects.length, gallery.length, skillCount);
+    // ===== 柱状图（Canvas） =====
+    drawBarChart(articles, gallery);
+
+    // 给卡片绑定点击跳转
+    document.querySelectorAll('.dash-stat.clickable').forEach(function(card) {
+      card.addEventListener('click', function() {
+        var tab = this.getAttribute('data-tab');
+        if (tab) switchTab(tab, null);
+      });
+    });
+
+  } catch(e) {
+    console.error('加载数据大屏失败:', e);
+  }
+}
+
+// 简单 Canvas 饼图
+function drawPieChart(articles, projects, gallery, skills) {
+  var canvas = $('dash-pie-chart');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width = 300 * dpr;
+  canvas.height = 200 * dpr;
+  canvas.style.width = '300px';
+  canvas.style.height = '200px';
+  ctx.scale(dpr, dpr);
+
+  var data = [
+    { label: '文章', value: articles, color: '#6366f1' },
+    { label: '作品', value: projects, color: '#10b981' },
+    { label: '相册', value: gallery, color: '#f59e0b' },
+    { label: '技能', value: skills, color: '#ec4899' }
+  ];
+  var total = data.reduce(function(s,d){ return s + d.value; }, 0);
+  if (total === 0) {
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('暂无数据', 150, 105);
+    return;
+  }
+
+  var cx = 90, cy = 100, r = 70;
+  var startAngle = -Math.PI / 2;
+  data.forEach(function(d) {
+    if (d.value === 0) return;
+    var sliceAngle = (d.value / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, startAngle + sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = d.color;
+    ctx.fill();
+    startAngle += sliceAngle;
+  });
+  // 中间白圆（环形图效果）
+  ctx.beginPath();
+  ctx.arc(cx, cy, 40, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.fillStyle = '#1e293b';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(total, cx, cy - 6);
+  ctx.font = '11px sans-serif';
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText('总计', cx, cy + 12);
+
+  // 图例
+  var lx = 190, ly = 40;
+  data.forEach(function(d) {
+    ctx.fillStyle = d.color;
+    ctx.fillRect(lx, ly, 12, 12);
+    ctx.fillStyle = '#374151';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(d.label + ' (' + d.value + ')', lx + 18, ly + 6);
+    ly += 24;
+  });
+}
+
+// 简单 Canvas 柱状图
+function drawBarChart(articles, gallery) {
+  var canvas = $('dash-bar-chart');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width = 400 * dpr;
+  canvas.height = 180 * dpr;
+  canvas.style.width = '100%';
+  canvas.style.height = '180px';
+  ctx.scale(dpr, dpr);
+
+  // 按月份统计文章
+  var months = {};
+  articles.forEach(function(a) {
+    var d = new Date(a.created_at || a.updated_at || Date.now());
+    var key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    months[key] = (months[key]||0) + 1;
+  });
+  var monthKeys = Object.keys(months).sort().slice(-6);
+  if (monthKeys.length === 0) {
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('暂无数据', 200, 95);
+    return;
+  }
+
+  var maxVal = Math.max.apply(null, monthKeys.map(function(k){ return months[k]; }));
+  var barW = 40, gap = 20, startX = 40, chartH = 120, baseY = 150;
+  var colors = ['#6366f1','#8b5cf6','#ec4899','#10b981','#f59e0b','#06b6d4'];
+
+  // 画网格线
+  ctx.strokeStyle = '#f1f5f9';
+  ctx.lineWidth = 1;
+  for (var i = 0; i <= 4; i++) {
+    var y = baseY - (chartH / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(startX - 10, y);
+    ctx.lineTo(startX + monthKeys.length * (barW + gap), y);
+    ctx.stroke();
+  }
+
+  monthKeys.forEach(function(key, idx) {
+    var val = months[key];
+    var barH = maxVal > 0 ? (val / maxVal) * chartH : 0;
+    var x = startX + idx * (barW + gap);
+    var y = baseY - barH;
+    // 柱子
+    ctx.fillStyle = colors[idx % colors.length];
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, barH, [4,4,0,0]);
+    ctx.fill();
+    // 数值
+    ctx.fillStyle = '#374151';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(val, x + barW/2, y - 6);
+    // 月份标签
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '10px sans-serif';
+    ctx.fillText(key.substring(5) + '月', x + barW/2, baseY + 16);
+  });
+}
+
+// tab 切换时加载数据大屏
+var _origSwitchTab = switchTab;
+switchTab = function(tab, el) {
+  _origSwitchTab(tab, el);
+  if (tab === 'dashboard') loadDashboard();
+};
 </script>
 </body>
 </html>
