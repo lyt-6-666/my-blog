@@ -2405,12 +2405,45 @@
     font-family: var(--font-display);
     font-size: 20px; margin-bottom: 4px;
   }
-  .theme-panel .desc { color: var(--text2); font-size: 12.5px; margin-bottom: 18px; }
+  .theme-panel .desc { color: var(--text2); font-size: 12.5px; margin-bottom: 14px; }
+  .theme-cats {
+    display: flex; gap: 8px; margin-bottom: 14px;
+  }
+  .theme-cat-btn {
+    padding: 6px 16px; border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--card); color: var(--text2);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all .2s ease;
+  }
+  .theme-cat-btn:hover { border-color: var(--accent); color: var(--text); }
+  .theme-cat-btn.active {
+    background: var(--g1); color: #fff; border-color: transparent;
+  }
+  .theme-cat-count {
+    font-size: 11px; opacity: .7; margin-left: 4px;
+  }
   .theme-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
   }
+  .theme-card.hidden-by-cat { display: none; }
+  .theme-pager {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; margin-top: 16px;
+  }
+  .theme-pager button {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--card); color: var(--text2);
+    cursor: pointer; font-size: 13px;
+    transition: all .2s ease;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .theme-pager button:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
+  .theme-pager button:disabled { opacity: .3; cursor: not-allowed; }
+  .theme-pager .pager-info { font-size: 12.5px; color: var(--text2); min-width: 60px; text-align: center; }
   .theme-card {
     border: 2px solid var(--border);
     border-radius: 16px;
@@ -4164,6 +4197,11 @@
   <div class="theme-panel">
     <h3>🎨 外观主题</h3>
     <div class="desc">为你的工作台换一种心情。所有主题都支持暖色调字体渲染，持久化保存。</div>
+    <div class="theme-cats" id="theme-cats">
+      <button class="theme-cat-btn active" data-cat="all" onclick="filterThemes('all')">全部<span class="theme-cat-count" id="cat-count-all"></span></button>
+      <button class="theme-cat-btn" data-cat="light" onclick="filterThemes('light')">☀️ 亮色<span class="theme-cat-count" id="cat-count-light"></span></button>
+      <button class="theme-cat-btn" data-cat="dark" onclick="filterThemes('dark')">🌙 暗色<span class="theme-cat-count" id="cat-count-dark"></span></button>
+    </div>
     <div class="theme-grid" id="theme-grid">
       <div class="theme-card active" data-theme="default" onclick="applyTheme('default', this)">
         <div class="theme-preview">
@@ -4277,6 +4315,11 @@
         <div class="theme-name">📜 宣纸 · 书卷</div>
         <div class="theme-desc">米黄书卷色，古朴文雅，翰墨飘香。</div>
       </div>
+    </div>
+    <div class="theme-pager" id="theme-pager">
+      <button id="theme-prev" onclick="themePage(-1)" title="上一页"><i class="fa-solid fa-chevron-left"></i></button>
+      <span class="pager-info" id="theme-page-info">1 / 1</span>
+      <button id="theme-next" onclick="themePage(1)" title="下一页"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
     <div class="theme-actions">
       <button class="btn btn-outline" onclick="closeThemePanel()">关闭</button>
@@ -7215,7 +7258,75 @@ switchTab = function(tab, el) {
       el.classList.add("active");
     }
   };
-  window.openThemePanel = function () { loadTheme(); $("theme-modal").classList.add("open"); };
+  // 主题分类与翻页
+  var THEME_PAGE_SIZE = 6;
+  var themeCurrentCat = "all";
+  var themeCurrentPage = 1;
+  var lightThemes = ["default","青瓷","雾蓝","樱花","日落","薄荷","宣纸"];
+  var darkThemes = ["深夜","墨韵","森林","极光","焦糖","海洋","葡萄"];
+  function getThemeCat(name) {
+    return darkThemes.indexOf(name) >= 0 ? "dark" : "light";
+  }
+  function updateThemeCounts() {
+    var cards = document.querySelectorAll("#theme-grid .theme-card");
+    var all = 0, light = 0, dark = 0;
+    cards.forEach(function(c) {
+      var cat = getThemeCat(c.getAttribute("data-theme"));
+      all++; if (cat === "light") light++; else dark++;
+    });
+    $("cat-count-all").textContent = all;
+    $("cat-count-light").textContent = light;
+    $("cat-count-dark").textContent = dark;
+  }
+  function getFilteredCards() {
+    var cards = document.querySelectorAll("#theme-grid .theme-card");
+    var list = [];
+    cards.forEach(function(c) {
+      var cat = getThemeCat(c.getAttribute("data-theme"));
+      if (themeCurrentCat === "all" || cat === themeCurrentCat) list.push(c);
+    });
+    return list;
+  }
+  function renderThemePage() {
+    var cards = document.querySelectorAll("#theme-grid .theme-card");
+    var filtered = getFilteredCards();
+    var totalPages = Math.max(1, Math.ceil(filtered.length / THEME_PAGE_SIZE));
+    if (themeCurrentPage > totalPages) themeCurrentPage = totalPages;
+    var start = (themeCurrentPage - 1) * THEME_PAGE_SIZE;
+    var end = start + THEME_PAGE_SIZE;
+    cards.forEach(function(c) { c.classList.add("hidden-by-cat"); });
+    filtered.forEach(function(c, i) {
+      if (i >= start && i < end) c.classList.remove("hidden-by-cat");
+    });
+    $("theme-page-info").textContent = totalPages <= 1 ? "1 / 1" : (themeCurrentPage + " / " + totalPages);
+    $("theme-prev").disabled = themeCurrentPage <= 1;
+    $("theme-next").disabled = themeCurrentPage >= totalPages;
+    $("theme-pager").style.display = totalPages <= 1 ? "none" : "flex";
+  }
+  window.filterThemes = function(cat) {
+    themeCurrentCat = cat;
+    themeCurrentPage = 1;
+    document.querySelectorAll(".theme-cat-btn").forEach(function(b) {
+      b.classList.toggle("active", b.getAttribute("data-cat") === cat);
+    });
+    renderThemePage();
+  };
+  window.themePage = function(dir) {
+    themeCurrentPage += dir;
+    if (themeCurrentPage < 1) themeCurrentPage = 1;
+    renderThemePage();
+  };
+  window.openThemePanel = function () {
+    loadTheme();
+    updateThemeCounts();
+    themeCurrentCat = "all";
+    themeCurrentPage = 1;
+    document.querySelectorAll(".theme-cat-btn").forEach(function(b) {
+      b.classList.toggle("active", b.getAttribute("data-cat") === "all");
+    });
+    renderThemePage();
+    $("theme-modal").classList.add("open");
+  };
   window.closeThemePanel = function () { $("theme-modal").classList.remove("open"); };
 
   // ========== 模块/子页面 切换 ==========
